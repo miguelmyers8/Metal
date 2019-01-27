@@ -33,7 +33,7 @@ class Tensor (object):
             id = np.random.randint(0,100000)
         self.id = id
 
-        #   Keep track of how many children
+        # Keep track of how many children
         if(creators is not None):
             for c in creators:
                 if(self.id not in c.children):
