@@ -1,7 +1,7 @@
 """
 Optimizers go here
 """
-from autograd.module import Module
+from metal.module import Module
 
 class SGD:
     def __init__(self, lr: float = 0.01) -> None:

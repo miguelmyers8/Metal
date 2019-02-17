@@ -1,6 +1,6 @@
 import numpy as np
 
-from autograd.tensor import Tensor, Dependency
+from metal.tensor import Tensor, Dependency
 
 def tanh(tensor: Tensor) -> Tensor:
     data = np.tanh(tensor.data)

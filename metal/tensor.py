@@ -34,7 +34,7 @@ class Tensor:
         self.depends_on = depends_on or []
         self.shape = self._data.shape
         self.grad: Optional['Tensor'] = None
-        
+
         if(id is None):
             id = np.random.randint(0,100000)
         self.id = id

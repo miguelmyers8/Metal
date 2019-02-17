@@ -16,4 +16,5 @@ python 3.6
     f = d + e
     f.backward(Tensor(np.array([1,1,1,1,1])))
     assert(b.grad.data.tolist() == np.array([2,2,2,2,2]).tolist())
+    b.zero_grad()
 ```
