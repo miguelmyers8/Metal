@@ -1,3 +1,4 @@
+from __future__ import division
 from typing import List, NamedTuple, Callable, Optional, Union
 
 import numpy as np
@@ -101,6 +102,16 @@ class Tensor:
 
     def __getitem__(self, idxs) -> 'Tensor':
         return _slice(self, idxs)
+
+
+    def __truediv__(self, other) -> 'Tensor':
+        """gets called if I do t / other"""
+        return _div(self, ensure_tensor(other))
+
+    def __rtruediv__(self, other) -> 'Tensor':
+        """gets called if I do other / t"""
+        return _div(ensure_tensor(other), self)
+
 
     def backward(self, grad: 'Tensor' = None) -> None:
         assert self.requires_grad, "called backward on non-requires-grad tensor"
@@ -290,3 +301,53 @@ def _slice(t: Tensor, idxs) -> Tensor:
         depends_on = []
 
     return Tensor(data, requires_grad, depends_on)
+
+
+
+def _div(t1: Tensor, t2: Tensor) -> Tensor:
+
+    data = t1.data / t2.data
+
+    requires_grad = t1.requires_grad or t2.requires_grad
+
+    depends_on: List[Dependency] = []
+
+    if t1.requires_grad:
+        def grad_fn1(grad: np.ndarray) -> np.ndarray:
+            grad = grad  * (1 / t2.data)
+
+            # Sum out added dims
+            ndims_added = grad.ndim - t1.data.ndim
+            for _ in range(ndims_added):
+                grad = grad.sum(axis=0)
+
+            # Sum across broadcasted (but non-added dims)
+            for i, dim in enumerate(t1.shape):
+                if dim == 1:
+                    grad = grad.sum(axis=i, keepdims=True)
+
+            return grad
+
+        depends_on.append(Dependency(t1, grad_fn1))
+
+    if t2.requires_grad:
+        def grad_fn2(grad: np.ndarray) -> np.ndarray:
+            grad = grad * (- t1.data/( t2.data * t2.data))
+
+            # Sum out added dims
+            ndims_added = grad.ndim - t2.data.ndim
+            for _ in range(ndims_added):
+                grad = grad.sum(axis=0)
+
+            # Sum across broadcasted (but non-added dims)
+            for i, dim in enumerate(t2.shape):
+                if dim == 1:
+                    grad = grad.sum(axis=i, keepdims=True)
+
+            return grad
+
+        depends_on.append(Dependency(t2, grad_fn2))
+
+    return Tensor(data,
+                  requires_grad,
+                  depends_on)

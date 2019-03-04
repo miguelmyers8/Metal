@@ -1,8 +1,14 @@
 import numpy as np
-
 from metal.tensor import Tensor
 
 class Parameter(Tensor):
-    def __init__(self, *shape) -> None:
-        data = np.random.randn(*shape)
+    def __init__(self, input_size=None, output_size=None, input=None) -> None:
+
+        if input_size and output_size is not None:
+            np.random.seed(input_size)
+            data = np.random.randn(input_size, output_size)
+            
+        elif input is not None:
+            data = input
+
         super().__init__(data, requires_grad=True)
