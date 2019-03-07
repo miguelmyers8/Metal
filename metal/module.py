@@ -4,6 +4,7 @@ import inspect
 from metal.tensor import Tensor
 from metal.parameter import Parameter
 
+
 class Module:
     def parameters(self) -> Iterator[Parameter]:
         for name, value in inspect.getmembers(self):
