@@ -56,7 +56,7 @@ python 3.6
 
 ```
 
-#Working Example
+## Working Example
 ```python
 from metal.tensor import Tensor as tn
 from metal.parameter import Parameter as pr
