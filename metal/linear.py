@@ -12,8 +12,8 @@ class Linear(Module):
     def __init__(self, input_size: int, output_size: int) -> None:
         super(Linear, self).__init__()
         b = np.zeros((input_size,1))
-        self.w = Parameter(input_size, output_size) * np.sqrt(2/output_size)
-        self.b = Parameter(input = b)
+        self.w = Parameter(input_size, output_size) 
+        self.b = Parameter(inputs = b)
 
     def forward(self, inputs: Tensor) -> Tensor:
 
@@ -25,19 +25,27 @@ class Linear(Module):
 
         # weight derivate
         if self.w.requires_grad:
-            def grad_w(grad: np.ndarray) -> np.ndarray:
+            def grad_fn(grad: np.ndarray) -> np.ndarray:
                     grad = (1./m) * (grad @ self.inputs.data.T)
                     return grad
 
-            depends_on.append(Dependency(self.w, grad_w))
+            depends_on.append(Dependency(self.w, grad_fn))
+
+        # activation derivate
+        if self.inputs.requires_grad:
+            def grad_fn(grad: np.ndarray) -> np.ndarray:
+                grad = self.w.data.T @ grad
+                return grad
+
+            depends_on.append(Dependency(self.inputs, grad_fn))
 
         # biase derivate
         if self.b.requires_grad:
-            def grad_b(grad: np.ndarray) -> np.ndarray:
+            def grad_fn(grad: np.ndarray) -> np.ndarray:
                 grad = (1./m) * np.sum(grad, axis=1, keepdims=True)
                 return grad
 
-            depends_on.append(Dependency(self.b, grad_b))
+            depends_on.append(Dependency(self.b, grad_fn))
 
 
         return Tensor(output,requires_grad,depends_on)

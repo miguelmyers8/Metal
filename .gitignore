@@ -1,6 +1,9 @@
 # Metals
 basic-test.ipynb
 setup.py
+/Dataset1
+/.ipynb_checkpoints
+/Untitled.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

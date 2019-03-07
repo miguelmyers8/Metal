@@ -3,11 +3,14 @@ from typing import List, NamedTuple, Callable, Optional, Union
 
 import numpy as np
 
+
 class Dependency(NamedTuple):
-    tensor: 'Tensor'
+    tensor: "Tensor"
     grad_fn: Callable[[np.ndarray], np.ndarray]
 
+
 Arrayable = Union[float, list, np.ndarray]
+
 
 def ensure_array(arrayable: Arrayable) -> np.ndarray:
     if isinstance(arrayable, np.ndarray):
@@ -15,9 +18,11 @@ def ensure_array(arrayable: Arrayable) -> np.ndarray:
     else:
         return np.array(arrayable)
 
-Tensorable = Union['Tensor', float, np.ndarray]
 
-def ensure_tensor(tensorable: Tensorable) -> 'Tensor':
+Tensorable = Union["Tensor", float, np.ndarray]
+
+
+def ensure_tensor(tensorable: Tensorable) -> "Tensor":
     if isinstance(tensorable, Tensor):
         return tensorable
     else:
@@ -25,19 +30,21 @@ def ensure_tensor(tensorable: Tensorable) -> 'Tensor':
 
 
 class Tensor:
-    def __init__(self,
-                 data: Arrayable,
-                 requires_grad: bool = False,
-                 depends_on: List[Dependency] = None,
-                 id = None) -> None:
+    def __init__(
+        self,
+        data: Arrayable,
+        requires_grad: bool = False,
+        depends_on: List[Dependency] = None,
+        id=None,
+    ) -> None:
         self._data = ensure_array(data)
         self.requires_grad = requires_grad
         self.depends_on = depends_on or []
         self.shape = self._data.shape
-        self.grad: Optional['Tensor'] = None
+        self.grad: Optional["Tensor"] = None
 
-        if(id is None):
-            id = np.random.randint(0,100000)
+        if id is None:
+            id = np.random.randint(0, 100_000)
         self.id = id
 
         if self.requires_grad:
@@ -59,61 +66,59 @@ class Tensor:
     def __repr__(self) -> str:
         return f"Tensor({self.data}, requires_grad={self.requires_grad})"
 
-    def __add__(self, other) -> 'Tensor':
+    def __add__(self, other) -> "Tensor":
         """gets called if I do t + other"""
         return _add(self, ensure_tensor(other))
 
-    def __radd__(self, other) -> 'Tensor':
+    def __radd__(self, other) -> "Tensor":
         """gets called if I do other + t"""
         return _add(ensure_tensor(other), self)
 
-    def __iadd__(self, other) -> 'Tensor':
+    def __iadd__(self, other) -> "Tensor":
         """when we do t += other"""
         self.data = self.data + ensure_tensor(other).data
         return self
 
-    def __isub__(self, other) -> 'Tensor':
+    def __isub__(self, other) -> "Tensor":
         """when we do t -= other"""
         self.data = self.data - ensure_tensor(other).data
         return self
 
-    def __imul__(self, other) -> 'Tensor':
+    def __imul__(self, other) -> "Tensor":
         """when we do t *= other"""
         self.data = self.data * ensure_tensor(other).data
         return self
 
-    def __mul__(self, other) -> 'Tensor':
+    def __mul__(self, other) -> "Tensor":
         return _mul(self, ensure_tensor(other))
 
-    def __rmul__(self, other) -> 'Tensor':
+    def __rmul__(self, other) -> "Tensor":
         return _mul(ensure_tensor(other), self)
 
-    def __matmul__(self, other) -> 'Tensor':
+    def __matmul__(self, other) -> "Tensor":
         return _matmul(self, other)
 
-    def __neg__(self) -> 'Tensor':
+    def __neg__(self) -> "Tensor":
         return _neg(self)
 
-    def __sub__(self, other) -> 'Tensor':
+    def __sub__(self, other) -> "Tensor":
         return _sub(self, ensure_tensor(other))
 
-    def __rsub__(self, other) -> 'Tensor':
+    def __rsub__(self, other) -> "Tensor":
         return _sub(ensure_tensor(other), self)
 
-    def __getitem__(self, idxs) -> 'Tensor':
+    def __getitem__(self, idxs) -> "Tensor":
         return _slice(self, idxs)
 
-
-    def __truediv__(self, other) -> 'Tensor':
+    def __truediv__(self, other) -> "Tensor":
         """gets called if I do t / other"""
         return _div(self, ensure_tensor(other))
 
-    def __rtruediv__(self, other) -> 'Tensor':
+    def __rtruediv__(self, other) -> "Tensor":
         """gets called if I do other / t"""
         return _div(ensure_tensor(other), self)
 
-
-    def backward(self, grad: 'Tensor' = None) -> None:
+    def backward(self, grad: "Tensor" = None) -> None:
         assert self.requires_grad, "called backward on non-requires-grad tensor"
 
         if grad is None:
@@ -128,7 +133,7 @@ class Tensor:
             backward_grad = dependency.grad_fn(grad.data)
             dependency.tensor.backward(Tensor(backward_grad))
 
-    def sum(self) -> 'Tensor':
+    def sum(self) -> "Tensor":
         return tensor_sum(self)
 
 
@@ -141,6 +146,7 @@ def tensor_sum(t: Tensor) -> Tensor:
     requires_grad = t.requires_grad
 
     if requires_grad:
+
         def grad_fn(grad: np.ndarray) -> np.ndarray:
             """
             grad is necessarily a 0-tensor, so each input element
@@ -153,9 +159,8 @@ def tensor_sum(t: Tensor) -> Tensor:
     else:
         depends_on = []
 
-    return Tensor(data,
-                  requires_grad,
-                  depends_on)
+    return Tensor(data, requires_grad, depends_on)
+
 
 def _add(t1: Tensor, t2: Tensor) -> Tensor:
     data = t1.data + t2.data
@@ -164,6 +169,7 @@ def _add(t1: Tensor, t2: Tensor) -> Tensor:
     depends_on: List[Dependency] = []
 
     if t1.requires_grad:
+
         def grad_fn1(grad: np.ndarray) -> np.ndarray:
             # Sum out added dims
             ndims_added = grad.ndim - t1.data.ndim
@@ -180,6 +186,7 @@ def _add(t1: Tensor, t2: Tensor) -> Tensor:
         depends_on.append(Dependency(t1, grad_fn1))
 
     if t2.requires_grad:
+
         def grad_fn2(grad: np.ndarray) -> np.ndarray:
             # Sum out added dims
             ndims_added = grad.ndim - t2.data.ndim
@@ -195,9 +202,8 @@ def _add(t1: Tensor, t2: Tensor) -> Tensor:
 
         depends_on.append(Dependency(t2, grad_fn2))
 
-    return Tensor(data,
-                  requires_grad,
-                  depends_on)
+    return Tensor(data, requires_grad, depends_on)
+
 
 def _mul(t1: Tensor, t2: Tensor) -> Tensor:
     data = t1.data * t2.data
@@ -206,6 +212,7 @@ def _mul(t1: Tensor, t2: Tensor) -> Tensor:
     depends_on: List[Dependency] = []
 
     if t1.requires_grad:
+
         def grad_fn1(grad: np.ndarray) -> np.ndarray:
             grad = grad * t2.data
 
@@ -224,6 +231,7 @@ def _mul(t1: Tensor, t2: Tensor) -> Tensor:
         depends_on.append(Dependency(t1, grad_fn1))
 
     if t2.requires_grad:
+
         def grad_fn2(grad: np.ndarray) -> np.ndarray:
             grad = grad * t1.data
 
@@ -241,9 +249,8 @@ def _mul(t1: Tensor, t2: Tensor) -> Tensor:
 
         depends_on.append(Dependency(t2, grad_fn2))
 
-    return Tensor(data,
-                  requires_grad,
-                  depends_on)
+    return Tensor(data, requires_grad, depends_on)
+
 
 def _neg(t: Tensor) -> Tensor:
     data = -t.data
@@ -255,8 +262,10 @@ def _neg(t: Tensor) -> Tensor:
 
     return Tensor(data, requires_grad, depends_on)
 
+
 def _sub(t1: Tensor, t2: Tensor) -> Tensor:
     return t1 + -t2
+
 
 def _matmul(t1: Tensor, t2: Tensor) -> Tensor:
     """
@@ -272,25 +281,28 @@ def _matmul(t1: Tensor, t2: Tensor) -> Tensor:
     depends_on: List[Dependency] = []
 
     if t1.requires_grad:
+
         def grad_fn1(grad: np.ndarray) -> np.ndarray:
             return grad @ t2.data.T
 
         depends_on.append(Dependency(t1, grad_fn1))
 
     if t2.requires_grad:
+
         def grad_fn2(grad: np.ndarray) -> np.ndarray:
             return t1.data.T @ grad
+
         depends_on.append(Dependency(t2, grad_fn2))
 
-    return Tensor(data,
-                  requires_grad,
-                  depends_on)
+    return Tensor(data, requires_grad, depends_on)
+
 
 def _slice(t: Tensor, idxs) -> Tensor:
     data = t.data[idxs]
     requires_grad = t.requires_grad
 
     if requires_grad:
+
         def grad_fn(grad: np.ndarray) -> np.ndarray:
             bigger_grad = np.zeros_like(data)
             bigger_grad[idxs] = grad
@@ -303,7 +315,6 @@ def _slice(t: Tensor, idxs) -> Tensor:
     return Tensor(data, requires_grad, depends_on)
 
 
-
 def _div(t1: Tensor, t2: Tensor) -> Tensor:
 
     data = t1.data / t2.data
@@ -313,8 +324,9 @@ def _div(t1: Tensor, t2: Tensor) -> Tensor:
     depends_on: List[Dependency] = []
 
     if t1.requires_grad:
+
         def grad_fn1(grad: np.ndarray) -> np.ndarray:
-            grad = grad  * (1 / t2.data)
+            grad = grad * (1 / t2.data)
 
             # Sum out added dims
             ndims_added = grad.ndim - t1.data.ndim
@@ -331,8 +343,9 @@ def _div(t1: Tensor, t2: Tensor) -> Tensor:
         depends_on.append(Dependency(t1, grad_fn1))
 
     if t2.requires_grad:
+
         def grad_fn2(grad: np.ndarray) -> np.ndarray:
-            grad = grad * (- t1.data/( t2.data * t2.data))
+            grad = grad * (-t1.data / (t2.data * t2.data))
 
             # Sum out added dims
             ndims_added = grad.ndim - t2.data.ndim
@@ -348,6 +361,4 @@ def _div(t1: Tensor, t2: Tensor) -> Tensor:
 
         depends_on.append(Dependency(t2, grad_fn2))
 
-    return Tensor(data,
-                  requires_grad,
-                  depends_on)
+    return Tensor(data, requires_grad, depends_on)

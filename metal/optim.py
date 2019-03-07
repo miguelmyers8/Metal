@@ -3,7 +3,7 @@ Optimizers go here
 """
 from metal.module import Module
 
-class SGD:
+class GD:
     def __init__(self, lr: float = 0.01) -> None:
         self.lr = lr
 
