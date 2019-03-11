@@ -4,6 +4,7 @@ setup.py
 /Dataset1
 /.ipynb_checkpoints
 /Untitled.ipynb
+/metal/.layer.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
