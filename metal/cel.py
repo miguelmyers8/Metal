@@ -13,6 +13,7 @@ def cel(predicted: Tensor, actual: Tensor, module: Module = None) -> Tensor:
         -np.dot(actual.data, np.log(predicted.data).T)
         - np.dot(1 - actual.data, np.log(1 - predicted.data).T)
     )
+
     requires_grad = predicted.requires_grad
 
     if requires_grad:
@@ -37,8 +38,7 @@ def L2_Regularization(module: Module = None):
 
     global sum_
     sum_ = 0
-
     for layer in module.layers:
         if type(layer) == Linear:
-            sum_ += layer.lambda_ * np.sum(np.square((layer.w.data))) / (2*m) 
+            sum_ += Linear.lambda_ * (np.sum(np.square(layer.w.data))) / (2 * m)
     return sum_

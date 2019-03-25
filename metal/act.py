@@ -4,10 +4,10 @@ from metal.tensor import Tensor, Dependency
 from metal.module import Module
 import numpy as np
 
-
+# Sigmoid
 class Sigmoid(Module):
-    """docstring for Sigmoid."""
 
+    # docstring for Sigmoid.
     def __init__(self):
         super(Sigmoid, self).__init__()
 
@@ -27,12 +27,10 @@ class Sigmoid(Module):
         return Tensor(data, requires_grad, depends_on)
 
 
-""" relu """
-
-
+# Relu
 class Relu(Module):
-    """docstring for relu."""
 
+    # docstring for relu.
     def __init__(self):
         super(Relu, self).__init__()
 
