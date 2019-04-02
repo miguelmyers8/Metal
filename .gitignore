@@ -5,6 +5,12 @@ setup.py
 /.ipynb_checkpoints
 /Untitled.ipynb
 /metal/layer.py
+/metal/dropout.py
+/BC.py
+/cython.ipynb
+/multiprocess.ipynb
+/profiling.ipynb
+/Untitled1.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

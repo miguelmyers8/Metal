@@ -27,9 +27,9 @@ python 3.6
 ```python
     from metal.parameter import Parameter as pr
 
-    a = pr(inputs=[1,2,3,4,5])
-    b = pr(inputs=[2,2,2,2,2])
-    c = pr(inputs=[5,4,3,2,1])
+    a = pr(inputs_=[1,2,3,4,5])
+    b = pr(inputs_=[2,2,2,2,2])
+    c = pr(inputs_=[5,4,3,2,1])
     d = a + b
     e = b + c
     f = d + e

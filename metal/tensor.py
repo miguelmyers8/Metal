@@ -35,7 +35,7 @@ class Tensor:
         data: Arrayable,
         requires_grad: bool = False,
         depends_on: List[Dependency] = None,
-        id=None,
+        id = None,
     ) -> None:
         self._data = ensure_array(data)
         self.requires_grad = requires_grad

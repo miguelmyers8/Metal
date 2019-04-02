@@ -1,7 +1,7 @@
 from metal.module import Module
 from metal.tensor import Tensor, Dependency
 from metal.linear import Linear
-from metal.cel import cel, L2_Regularization
+from metal.functions import cel, L2_Regularization
 import numpy as np
 
 

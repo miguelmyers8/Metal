@@ -1,33 +1,29 @@
+
+"""This is Linear file.
+
+- This file computes forward pass of Linear class:
+- forward = W @ X + b
+
+- @ is matrix multiplaction opperater.
+- X is a (Nx,M) dim matrix
+- W is (c,Nx) dim matrix
+
+- gradients for Linear class:
+- dl/dW, dl/L2, dl/dX, dl/db
+- dl/dW = grad_fn_w
+- dl/L2 = grad_fn_l2
+- dl/dX = grad_fn_a
+- dl/db = grad_fn_b
+- The gradients are written in this class and are not coming from Tensor
+"""
+
 import numpy as np
 from metal.tensor import Tensor
 from metal.parameter import Parameter
 from metal.module import Module
 from metal.tensor import Dependency
 
-"""
-This is Linear file.
 
-This file computes forward pass of Linear class:
-forward = W @ X + b
-
-@ is matrix multiplaction opperater.
-X is a (Nx,M) dim matrix
-W is (c,Nx) dim matrix
-
-gradients for Linear class:
-dl/dW, dl/L2, dl/dX, dl/db
-
-dl/dW = grad_fn_w
-
-dl/L2 = grad_fn_l2
-
-dl/dX = grad_fn_a
-
-dl/db = grad_fn_b
-
-The gradients are written in this class and are not coming from Tensor
-
-"""
 class Linear(Module):
 
 
@@ -38,18 +34,23 @@ class Linear(Module):
     lambda_ = None
 
     # docstring for Linear.
-    def __init__(self, input_size: int = None, output_size: int = None, data_in: np.ndarray = None) -> None:
+    # Linear takes in int for input_size and output_size and np.ndarray for data_in.
+    def __init__(self, input_size: int = None,
+                        output_size: int = None,
+                        data_in: np.ndarray = None
+                        ) -> None:
+
         super(Linear, self).__init__()
 
         if (input_size and output_size is not None):
             b = np.zeros((input_size, 1))
             self.w = Parameter(input_size, output_size)
-            self.b = Parameter(inputs=b)
+            self.b = Parameter(inputs_ = b)
 
         elif (data_in is not None):
             b = np.zeros((data_in.shape[0], 1))
-            self.w = Parameter(inputs=data_in)
-            self.b = Parameter(inputs=b)
+            self.w = Parameter(inputs_ = data_in)
+            self.b = Parameter(inputs_ = b)
 
         else:
             assert "No inputs were given for Linear."
