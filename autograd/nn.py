@@ -1,6 +1,6 @@
-from metal.tensor import Tensor
-from metal.parameter import Parameter
-from metal.module import Module
+from autograd.tensor import Tensor
+from autograd.parameter import Parameter
+from autograd.module import Module
 from typing import Sequence, Iterator, Tuple, Any
 import numpy as np
 

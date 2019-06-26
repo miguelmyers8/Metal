@@ -304,11 +304,19 @@ def _slice(t: Tensor, idxs) -> Tensor:
     if requires_grad:
 
         def grad_fn(grad: np.ndarray) -> np.ndarray:
-            bigger_grad = np.zeros_like(data)
-            bigger_grad[idxs] = grad
+            #bigger_grad = np.zeros_like(t.data)
+            indices = (t.data[idxs] == t.data)
+            bigger_grad = indices * grad
+            #print('incoming grad ->',grad)
+            #bigger_grad = np.zeros_like(t.data)
+            #indices = bigger_grad[idxs].flatten()
+            #indices = indices.astype(int)
+            #grad = grad.reshape(len(indices),-1)
+            #for i in range(len(indices)):
+                #bigger_grad[indices[i]] += grad[i]
             return bigger_grad
 
-        depends_on = Dependency(t, grad_fn)
+        depends_on = [Dependency(t, grad_fn)]
     else:
         depends_on = []
 

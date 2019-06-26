@@ -1,7 +1,7 @@
 """
 Optimizers go here
 """
-from metal.module import Module
+from autograd.module import Module
 
 
 class GD:

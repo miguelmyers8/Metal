@@ -18,10 +18,10 @@
 """
 
 import numpy as np
-from metal.tensor import Tensor
-from metal.parameter import Parameter
-from metal.module import Module
-from metal.tensor import Dependency
+from autograd.tensor import Tensor
+from autograd.parameter import Parameter
+from autograd.module import Module
+from autograd.tensor import Dependency
 
 
 class Linear(Module):
@@ -44,7 +44,7 @@ class Linear(Module):
 
         if (input_size and output_size is not None):
             b = np.zeros((input_size, 1))
-            self.w = Parameter(input_size, output_size)
+            self.w = Parameter(input_size,output_size)
             self.b = Parameter(inputs_ = b)
 
         elif (data_in is not None):

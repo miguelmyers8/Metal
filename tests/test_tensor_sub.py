@@ -1,7 +1,7 @@
 import unittest
 import pytest
 
-from metal.tensor import Tensor
+from autograd.tensor import Tensor
 
 class TestTensorSub(unittest.TestCase):
     def test_simple_sub(self):

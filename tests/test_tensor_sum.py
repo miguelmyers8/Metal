@@ -1,6 +1,6 @@
 import unittest
 
-from metal.tensor import Tensor
+from autograd.tensor import Tensor
 
 class TestTensorSum(unittest.TestCase):
     def test_simple_sum(self):

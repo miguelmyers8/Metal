@@ -3,7 +3,7 @@ import pytest
 
 import numpy as np
 
-from metal.tensor import Tensor
+from autograd.tensor import Tensor
 
 class TestTensorMatMul(unittest.TestCase):
     def test_simple_matmul(self):

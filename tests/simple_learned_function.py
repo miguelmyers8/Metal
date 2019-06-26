@@ -1,7 +1,7 @@
 import numpy as np
 
-from metal import Tensor, Parameter, Module
-from metal.optim import SGD
+from autograd import Tensor, Parameter, Module
+from autograd.optim import SGD
 
 x_data = Tensor(np.random.randn(100, 3))
 coef = Tensor(np.array([-1, +3, -2], dtype=np.float))

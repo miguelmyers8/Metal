@@ -1,8 +1,8 @@
 from typing import Iterator
 import inspect
 
-from metal.tensor import Tensor
-from metal.parameter import Parameter
+from autograd.tensor import Tensor
+from autograd.parameter import Parameter
 
 
 class Module:

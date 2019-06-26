@@ -1,5 +1,5 @@
 import numpy as np
-from metal.tensor import Tensor
+from autograd.tensor import Tensor
 
 
 class Parameter(Tensor):

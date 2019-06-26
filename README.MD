@@ -6,7 +6,7 @@ python 3.6
 
 ## Using Tensors
 ```python
-    from metal.tensor import Tensor as mt
+    from autograd.tensor import Tensor as mt
 
     a = mt([1,2,3,4,5], requires_grad=True)
     b = mt([2,2,2,2,2], requires_grad=True)
@@ -25,7 +25,7 @@ python 3.6
 
 ## Using Parameter
 ```python
-    from metal.parameter import Parameter as pr
+    from autograd.parameter import Parameter as pr
 
     a = pr(inputs_=[1,2,3,4,5])
     b = pr(inputs_=[2,2,2,2,2])
@@ -58,15 +58,15 @@ python 3.6
 
 ## Working Example
 ```python
-from metal.tensor import Tensor as tn
-from metal.parameter import Parameter as pr
-from metal.flatten import Flatten as fl
-from metal.module import Module
-from metal.nn import Sequential
-from metal.linear import Linear
-from metal.act import Relu, Sigmoid
-from metal.loss import CEL
-from metal.optim import GD
+from autograd.tensor import Tensor as tn
+from autograd.parameter import Parameter as pr
+from autograd.flatten import Flatten as fl
+from autograd.module import Module
+from autograd.nn import Sequential
+from autograd.linear import Linear
+from autograd.act import Relu, Sigmoid
+from autograd.loss import CEL
+from autograd.optim import GD
 import matplotlib.pyplot as plt
 import numpy as np
 

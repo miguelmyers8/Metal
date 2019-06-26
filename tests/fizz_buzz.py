@@ -8,9 +8,9 @@ from typing import List
 
 import numpy as np
 
-from metal import Tensor, Parameter, Module
-from metal.function import tanh
-from metal.optim import SGD
+from autograd import Tensor, Parameter, Module
+from autograd.function import tanh
+from autograd.optim import SGD
 
 def binary_encode(x: int) -> List[int]:
     return [x >> i & 1 for i in range(10)]

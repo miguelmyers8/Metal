@@ -1,7 +1,7 @@
 import unittest
 import pytest
-from metal.tensor import Tensor as tn
-from metal.linear import Linear
+from autograd.tensor import Tensor as tn
+from autograd.linear import Linear
 import torch
 import numpy as np
 

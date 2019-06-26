@@ -2,7 +2,7 @@
 The idea here is that we'd like to use our library
 to minimize a function, say x ** 2
 """
-from metal.tensor import Tensor
+from autograd.tensor import Tensor
 
 x = Tensor([10, -10, 10, -5, 6, 3, 1], requires_grad=True)
 

@@ -1,7 +1,7 @@
 import numpy as np
 
-from metal.tensor import Tensor, Dependency
-from metal.module import Module
+from autograd.tensor import Tensor, Dependency
+from autograd.module import Module
 import numpy as np
 
 # Sigmoid
