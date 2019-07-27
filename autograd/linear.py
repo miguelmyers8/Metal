@@ -37,35 +37,35 @@ class Linear(Module):
     # Linear takes in int for input_size and output_size and np.ndarray for data_in.
     def __init__(self, input_size: int = None,
                         output_size: int = None,
-                        data_in: np.ndarray = None
+                        data_in_w: np.ndarray = None,
+                        data_in_b: np.ndarray = None,
+                        track_layer = True
                         ) -> None:
 
         super(Linear, self).__init__()
+
+        self.track_layer = track_layer  #track linear to get parameters and at optimzation time.
 
         if (input_size and output_size is not None):
             b = np.zeros((input_size, 1))
             self.w = Parameter(input_size,output_size)
             self.b = Parameter(inputs_ = b)
 
-        elif (data_in is not None):
-            b = np.zeros((data_in.shape[0], 1))
-            self.w = Parameter(inputs_ = data_in)
-            self.b = Parameter(inputs_ = b)
+        elif((type(data_in_w) and type(data_in_w)) is np.ndarray):
+            #b = np.zeros((data_in_w.shape[0], 1))
+            self.w = Parameter(inputs_ = data_in_w)
+            self.b = Parameter(inputs_ = data_in_b)
 
-        else:
-            assert "No inputs were given for Linear."
 
 
     #computes z = W @ X + b
-    # main function
     def forward(self, inputs: Tensor) -> Tensor:
 
         self.inputs = inputs
         m = self.inputs.shape[1]
+
         output = self.w.data @ self.inputs.data + self.b.data
-        requires_grad = (
-            self.inputs.requires_grad or self.w.requires_grad or self.b.requires_grad
-        )
+        requires_grad = (self.inputs.requires_grad or self.w.requires_grad or self.b.requires_grad)
         depends_on: List[Dependency] = []
 
         if self.w.requires_grad:

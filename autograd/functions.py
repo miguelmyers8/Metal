@@ -6,19 +6,19 @@ import numpy as np
 # cross entropy loss
 def cel(predicted: Tensor, actual: Tensor, module: Module = None) -> Tensor:
     global m
-    m = actual.shape[1]
-    data = (-1.0 / m) * sum(actual.data * np.log(predicted.data) + (1-actual.data) * np.log(1-predicted.data))
+    m = predicted.shape[1]
+
+    logprobs = np.multiply(-np.log(predicted.data),actual.data) + np.multiply(-np.log(1 - predicted.data), 1 - actual.data)
+    cost = 1./m * np.sum(logprobs)
+    data = cost
+
     requires_grad = predicted.requires_grad
     if requires_grad:
         def grad_fn(grad: np.ndarray) -> np.ndarray:
             return grad * (
-                (
-                    np.divide(predicted.data-actual.data,m*(predicted.data-predicted.data*predicted.data))
-                    #- np.divide(1 - actual.data, np.log(10) * (1 - predicted.data))
-                )
-
-
-            )
+            -( np.divide(actual.data, predicted.data) - np.divide(1-actual.data, 1-predicted.data) )
+            #np.divide(predicted.data-actual.data,m*(predicted.data-predicted.data*predicted.data))
+                            )
         depends_on = [Dependency(predicted, grad_fn)]
     else:
         depends_on = []

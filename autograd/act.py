@@ -8,8 +8,10 @@ import numpy as np
 class Sigmoid(Module):
 
     # docstring for Sigmoid.
-    def __init__(self):
+    def __init__(self,track_layer = False):
         super(Sigmoid, self).__init__()
+        self.track_layer = False
+
 
     def forward(self, tensor: Tensor) -> Tensor:
 
@@ -31,8 +33,9 @@ class Sigmoid(Module):
 class Relu(Module):
 
     # docstring for relu.
-    def __init__(self):
+    def __init__(self, track_layer = False):
         super(Relu, self).__init__()
+        self.track_layer = track_layer
 
     def forward(self, tensor: Tensor) -> Tensor:
         self.inputs = tensor

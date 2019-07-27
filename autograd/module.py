@@ -6,6 +6,9 @@ from autograd.parameter import Parameter
 
 
 class Module:
+    param = dict()
+    grad = dict()
+
     def parameters(self) -> Iterator[Parameter]:
         for name, value in inspect.getmembers(self):
             if isinstance(value, Parameter):
@@ -16,3 +19,9 @@ class Module:
     def zero_grad(self):
         for parameter in self.parameters():
             parameter.zero_grad()
+
+    def rest_param(self):
+        Module.param.clear()
+        
+    def rest_grad(self):
+        Module.grad.clear()
