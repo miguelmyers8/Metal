@@ -1,8 +1,13 @@
-# Metal V2
-Pytorch clone with a Auto differentiation framework for deep learning
+# Autograd V2
+Pytorch clone with a Auto differentiation framework for deep learning.
 
 ## Requirements
 python 3.6
+
+# Installation
+instal this repo locally.
+$ pip install .
+
 
 ## Using Tensors
 ```python
