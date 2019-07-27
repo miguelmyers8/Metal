@@ -5,7 +5,7 @@ Pytorch clone with a Auto differentiation framework for deep learning.
 python 3.6
 
 # Installation
-instal this repo locally.
+instal this repo locally in top directory <br /> 
 $ pip install .
 
 
