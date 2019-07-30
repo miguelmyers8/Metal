@@ -41,6 +41,10 @@ class Tensor:
         self.requires_grad = requires_grad
         self.depends_on = depends_on or []
         self.shape = self._data.shape
+        self.velocity: Optional['Tensor'] = None
+        self.velocity_corrected: Optional['Tensor'] = None
+        self.s: Optional['Tensor'] = None
+        self.s_corrected: Optional['Tensor'] = None
         self.grad: Optional["Tensor"] = None
 
         if id is None:
@@ -49,6 +53,10 @@ class Tensor:
 
         if self.requires_grad:
             self.zero_grad()
+            self.zero_velocity()
+            self.zero_s()
+            self.clear_velocity_corrected()
+            self.clear_s_corrected()
 
     @property
     def data(self) -> np.ndarray:
@@ -59,6 +67,18 @@ class Tensor:
         self._data = new_data
         # Setting the data manually means we invalidate the gradient.
         self.grad = None
+
+    def zero_velocity(self):
+        self.velocity = Tensor(np.zeros_like(self.data, dtype=np.float64))
+
+    def clear_velocity_corrected(self):
+        self.velocity_corrected = None
+
+    def zero_s(self):
+        self.s = Tensor(np.zeros_like(self.data, dtype=np.float64))
+
+    def clear_s_corrected(self):
+        self.s_corrected = None
 
     def zero_grad(self) -> None:
         self.grad = Tensor(np.zeros_like(self.data, dtype=np.float64))

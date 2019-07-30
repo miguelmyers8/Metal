@@ -5,45 +5,47 @@ from typing import Sequence, Iterator, Tuple, Any
 import numpy as np
 import math
 
-class mini_batch(object):
-    """docstring for mini_batch."""
-    def __init__(self, input_x: Tensor, input_y: Tensor, mini_batch_size: int, seed: int=1):
-        super(mini_batch, self).__init__()
-        self.input_x = input_x
-        self.input_y = input_y
-        self.mini_batch_size = mini_batch_size
-        self.seed = seed
+# random_mini_batches
 
+def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
+    """
+    Creates a list of random minibatches from (X, Y)
 
-    def apply(self):
+    Arguments:
+    X -- input data, of shape (input size, number of examples)
+    Y -- true "label" vector (), of shape (1, number of examples)
+    mini_batch_size -- size of the mini-batches, integer
 
-        np.random.seed(self.seed)
+    Returns:
+    mini_batches -- list of synchronous (mini_batch_X, mini_batch_Y)
+    """
 
-        self.mini_batches = []
+    np.random.seed(seed)            # To make your "random" minibatches the same as ours
+    m = X.shape[1]                  # number of training examples
+    mini_batches = []
 
-        m = self.input_x.shape[1]
+    # Step 1: Shuffle (X, Y)
+    permutation = list(np.random.permutation(m))
+    shuffled_X = X[:, permutation]
+    shuffled_Y = Y[:, permutation].reshape((1,m))
 
-        permutation = list(np.random.permutation(m))
+    # Step 2: Partition (shuffled_X, shuffled_Y). Minus the end case.
+    num_complete_minibatches = math.floor(m/mini_batch_size) # number of mini batches of size mini_batch_size in your partitionning
+    for k in range(0, num_complete_minibatches):
 
-        self.input_x = self.input_x[:, permutation]
-        self.input_y = self.input_y[:, permutation]
+        mini_batch_X = shuffled_X[:, k*mini_batch_size : (k+1)*mini_batch_size]
+        mini_batch_Y = shuffled_Y[:, k*mini_batch_size : (k+1)*mini_batch_size]
 
-        num_mini_bath = math.floor(m/self.mini_batch_size)
+        mini_batch = (mini_batch_X, mini_batch_Y)
+        mini_batches.append(mini_batch)
 
-        for k in range(0, num_mini_bath):
+    # Handling the end case (last mini-batch < mini_batch_size)
+    if m % mini_batch_size != 0:
 
-            mini_batch_X = self.input_x[:,k*self.mini_batch_size:(k+1)*self.mini_batch_size]
-            mini_batch_Y = self.input_y[:,k*self.mini_batch_size:(k+1)*self.mini_batch_size]
-            mini_batch = (mini_batch_X, mini_batch_Y)
+        mini_batch_X = shuffled_X[:, num_complete_minibatches *mini_batch_size : ]
+        mini_batch_Y = shuffled_Y[:, num_complete_minibatches *mini_batch_size : ]
 
-            self.mini_batches.append(mini_batch)
+        mini_batch = (mini_batch_X, mini_batch_Y)
+        mini_batches.append(mini_batch)
 
-        if m % self.mini_batch_size != 0:
-            mini_batch_X = self.input_x[:,m-self.mini_batch_size*num_mini_bath:m]
-            mini_batch_Y = self.input_y[:,m-self.mini_batch_size*num_mini_bath:m]
-
-            mini_batch = (mini_batch_X, mini_batch_Y)
-
-            self.mini_batches.append(mini_batch)
-
-        return self.mini_batches
+    return mini_batches

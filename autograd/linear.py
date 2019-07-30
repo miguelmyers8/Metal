@@ -51,7 +51,7 @@ class Linear(Module):
             self.w = Parameter(input_size,output_size)
             self.b = Parameter(inputs_ = b)
 
-        elif((type(data_in_w) and type(data_in_w)) is np.ndarray):
+        elif((type(data_in_w) and type(data_in_b)) is np.ndarray):
             #b = np.zeros((data_in_w.shape[0], 1))
             self.w = Parameter(inputs_ = data_in_w)
             self.b = Parameter(inputs_ = data_in_b)
