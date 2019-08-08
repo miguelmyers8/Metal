@@ -71,7 +71,7 @@ from autograd.nn import Sequential
 from autograd.linear import Linear
 from autograd.act import Relu, Sigmoid
 from autograd.loss import CEL
-from autograd.optim import GD
+from autograd.optim import SGD
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -81,7 +81,8 @@ test_x = fl().forward(test_x)
 train_y = tn(catnoncat.train_y())
 test_y = tn(catnoncat.test_y())
 
-optimizer = GD(lr=.0075)
+optimizer = SGD(lr=.0075)
+
 mod2 = Sequential([
          Linear(50,12288),
             Relu(),
@@ -98,9 +99,6 @@ for epoch in range(7000):
 
     epoch_loss = 0.0
 
-    for l in mod2.layers:
-        l.zero_grad()
-
     out = mod2.forward(train_x)
     cout = CEL(out,train_y)
     loss = cout.sum()
@@ -108,8 +106,8 @@ for epoch in range(7000):
     loss.backward()
     epoch_loss += loss.data
 
-    for l in mod2.layers:
-        optimizer.step(l)
+
+    optimizer.step(mod2)
 
 
     if epoch % 100 == 0:
