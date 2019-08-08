@@ -1,12 +1,18 @@
-# Autograd V2
+# Metal
 Pytorch clone with a Auto differentiation framework for deep learning.
 
 ## Requirements
-python 3.6
+python 3.6<br>
+xtensor-python<br>
+xtensor<br>
+xtensor-blas<br>
+pybind11<br>
+
 
 ## Installation
 Install this repo locally from top directory. <br />
 $ pip install .
+
 
 
 ## Using Tensors
