@@ -59,7 +59,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
 requires = [
-    'six>=1.10.0',
+    'six>=1.10.0'
 ]
 
 setup(
@@ -71,7 +71,10 @@ setup(
     author_email='miguelmyers8@gmail.com',
     description='Deep Learning project',
     long_description='',
-    ext_modules=[CMakeExtension('_autograd._math')],
+    package_data={'experimental':['m2.cpython-36m-darwin.so',
+    'mym.cpython-36m-darwin.so']},
+    include_package_data=True,
+    ext_modules=[CMakeExtension('cpp._mod1'),CMakeExtension('cpp._mod2')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )

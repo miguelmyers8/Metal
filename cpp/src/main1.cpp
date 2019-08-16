@@ -4,16 +4,16 @@
 #include <xtensor/xmath.hpp>              // xtensor import for the C++ universal functions
 #define FORCE_IMPORT_ARRAY                // numpy C api loading
 #include <xtensor-python/pyarray.hpp>     // Numpy bindings
-
-
-
+#include <xtensor-blas/xlinalg.hpp>
 using namespace std;
-int add(int i, int j) {
+namespace py = pybind11;
+
+
+int sub(int i, int j) {
     std::cout << "/* message */" << '\n';
-    return i + j;
+    return i - j;
 }
 
-namespace py = pybind11;
 
 double sum_of_sines(xt::pyarray<double>& m)
 {
@@ -21,13 +21,22 @@ double sum_of_sines(xt::pyarray<double>& m)
     return std::accumulate(sines.cbegin(), sines.cend(), 0.0);
 }
 
-PYBIND11_MODULE(_math, m)
+auto matmul(xt::pyarray<double>& m,xt::pyarray<double>& k)
+{
+
+    return xt::linalg::dot(m,k);
+}
+
+PYBIND11_MODULE(_mod2, m)
 {
     xt::import_numpy();
     m.doc() = "Test module for xtensor python bindings";
 
     m.def("sum_of_sines", sum_of_sines, "Sum the sines of the input values");
 
+    m.def("matmul", matmul, "matrixmul");
+
+    m.def("sub", sub, "subtract");
 
 
 #ifdef VERSION_INFO

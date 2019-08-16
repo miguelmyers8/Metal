@@ -39,7 +39,7 @@ class Linear(Module):
                         output_size: int = None,
                         data_in_w: np.ndarray = None,
                         data_in_b: np.ndarray = None,
-                        track_layer = True
+                        track_layer: bool = True
                         ) -> None:
 
         super(Linear, self).__init__()
