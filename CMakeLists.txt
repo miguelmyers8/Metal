@@ -27,6 +27,8 @@ find_package(pybind11 REQUIRED)
 message(STATUS "Found pybind11: ${pybind11_INCLUDE_DIRS}/pybind11")
 find_package(NumPy REQUIRED)
 message(STATUS "Found numpy: ${NUMPY_INCLUDE_DIRS}")
+find_package(Pythran REQUIRED)
+message(STATUS "Found Pythran: ${Pythran_INCLUDE_DIRS}")
 
 pybind11_add_module(_mod1 cpp/src/main.cpp)
 pybind11_add_module(_mod2 cpp/src/main1.cpp)
@@ -36,6 +38,7 @@ ${xtl_INCLUDE_DIRS}
 ${xtensor_INCLUDE_DIRS}
 ${xtensor-python_INCLUDE_DIRS}
 ${NUMPY_INCLUDE_DIRS}
+${Pythran_INCLUDE_DIRS}
 ${pybind11_INCLUDE_DIRS}
 )
 set(LIBS ${LIBS} PUBLIC ${xtensor-python_LIBRARIES} )

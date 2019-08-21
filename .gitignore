@@ -10,6 +10,10 @@ basic-test.ipynb
 /multiprocess.ipynb
 /profiling.ipynb
 /Untitled1.ipynb
+/cpp/README.MD
+/experimental/__pycache__
+/experimental/lib/__pycache__
+/metal.egg-info
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -27,7 +31,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+
 lib64/
 parts/
 sdist/

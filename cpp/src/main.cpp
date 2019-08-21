@@ -1,10 +1,12 @@
 #include <iostream>
-#include <numeric>                        // Standard library import for std::accumulate
-#include <pybind11/pybind11.h>            // Pybind11 import to define Python bindings
-#include <xtensor/xmath.hpp>              // xtensor import for the C++ universal functions
-#define FORCE_IMPORT_ARRAY                // numpy C api loading
-#include <xtensor-python/pyarray.hpp>     // Numpy bindings
+#include <numeric>
+#include "/Users/miguel/Documents/python apps/py3.6/dlgork/Metal_py/metal/cpp/tensor/functions.cpp"
+#include <pybind11/pybind11.h>
+#include <xtensor/xmath.hpp>
+#define FORCE_IMPORT_ARRAY
+#include <xtensor-python/pyarray.hpp>
 #include <xtensor-blas/xlinalg.hpp>
+
 using namespace std;
 namespace py = pybind11;
 
@@ -21,14 +23,13 @@ double sum_of_sines(xt::pyarray<double>& m)
     return std::accumulate(sines.cbegin(), sines.cend(), 0.0);
 }
 
-auto matmul(xt::pyarray<double>& m,xt::pyarray<double>& k, int c)
+
+auto matmul(py::array_t<double>& m,py::array_t<double>& k)
 {
-  xt::xarray<double> j;
-  for (int i=0; i<=c; i++){
-     j =  xt::linalg::dot(m,k);
-  }
-    return j;
+  auto p = __pythran_functions::F_mat_mul()(m,k);
+  return p;
 }
+
 
 PYBIND11_MODULE(_mod1, m)
 {
@@ -45,4 +46,10 @@ PYBIND11_MODULE(_mod1, m)
 #else
     m.attr("__version__") = "dev";
 #endif
+}
+
+
+int main(int argc, char const *argv[]) {
+ add(3,4);
+ return 0;
 }
