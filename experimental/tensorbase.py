@@ -1,6 +1,5 @@
 from __future__ import division
 from typing import List, NamedTuple, Callable, Optional, Union
-from experimental.lib.functions import *
 
 import numpy as np
 
@@ -15,9 +14,11 @@ Arrayable = Union[float, list, np.ndarray]
 
 def ensure_array(arrayable: Arrayable) -> np.ndarray:
     if isinstance(arrayable, np.ndarray):
+        arrayable = arrayable.astype(np.float32)
         return arrayable
     else:
-        return np.array(arrayable)
+        arr = np.array(arrayable)
+        return arr.astype(np.float32)
 
 
 TensorBaseable = Union["TensorBase", float, np.ndarray]
@@ -42,10 +43,6 @@ class TensorBase:
         self.requires_grad = requires_grad
         self.depends_on = depends_on or []
         self.shape = self._data.shape
-        self.velocity: Optional['TensorBase'] = None
-        self.velocity_corrected: Optional['TensorBase'] = None
-        self.s: Optional['TensorBase'] = None
-        self.s_corrected: Optional['TensorBase'] = None
         self.grad: Optional["TensorBase"] = None
 
         if id is None:
@@ -54,10 +51,7 @@ class TensorBase:
 
         if self.requires_grad:
             self.zero_grad()
-            self.zero_velocity()
-            self.zero_s()
-            self.clear_velocity_corrected()
-            self.clear_s_corrected()
+
 
     @property
     def data(self) -> np.ndarray:
@@ -69,20 +63,9 @@ class TensorBase:
         # Setting the data manually means we invalidate the gradient.
         self.grad = None
 
-    def zero_velocity(self):
-        self.velocity = TensorBase(np.zeros_like(self.data, dtype=np.float64))
-
-    def clear_velocity_corrected(self):
-        self.velocity_corrected = None
-
-    def zero_s(self):
-        self.s = TensorBase(np.zeros_like(self.data, dtype=np.float64))
-
-    def clear_s_corrected(self):
-        self.s_corrected = None
 
     def zero_grad(self) -> None:
-        self.grad = TensorBase(np.zeros_like(self.data, dtype=np.float64))
+        self.grad = TensorBase(np.zeros_like(self.data, dtype=np.float32))
 
     def __repr__(self) -> str:
         return f"Tensor({self.data}, requires_grad={self.requires_grad})"
@@ -150,9 +133,11 @@ class TensorBase:
 
         self.grad.data = self.grad.data + grad.data  # type: ignore
 
-        for dependency in self.depends_on:
-            backward_grad = dependency.grad_fn(grad.data)
-            dependency.TensorBase.backward(TensorBase(backward_grad))
+        for dependency in self.depends_on: #loop over the list
+            backward_grad = dependency.grad_fn(grad.data) # apply gard fuction
+            dependency.TensorBase.backward(TensorBase(backward_grad)) # get current tensorbase
+                                                                      # apply backward function
+                                                                      # wrapping the output gardent
 
     def sum(self) -> "TensorBase":
         return TensorBase_sum(self)
@@ -296,7 +281,7 @@ def _matmul(t1: TensorBase, t2: TensorBase) -> TensorBase:
         grad1 = grad3 @ t2.T
         grad2 = t1.T @ grad3
     """
-    data = F_mat_mul(t1.data, t2.data)
+    data = t1.data @ t2.data
     requires_grad = t1.requires_grad or t2.requires_grad
 
     depends_on: List[Dependency] = []

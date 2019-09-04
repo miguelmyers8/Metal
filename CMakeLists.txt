@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(cpp)
 
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
+if(COMPILER_SUPPORTS_MARCH_NATIVE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif()
+
 add_definitions(-DHAVE_CBLAS=1)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cpp/cmake")
@@ -30,10 +36,14 @@ message(STATUS "Found numpy: ${NUMPY_INCLUDE_DIRS}")
 find_package(Pythran REQUIRED)
 message(STATUS "Found Pythran: ${Pythran_INCLUDE_DIRS}")
 
+find_package(Eigen3 REQUIRED)
+message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
+
 pybind11_add_module(_mod1 cpp/src/main.cpp)
 pybind11_add_module(_mod2 cpp/src/main1.cpp)
 
 include_directories(
+${EIGEN3_INCLUDE_DIR}
 ${xtl_INCLUDE_DIRS}
 ${xtensor_INCLUDE_DIRS}
 ${xtensor-python_INCLUDE_DIRS}
@@ -53,3 +63,6 @@ get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 foreach(dir ${dirs})
   message(STATUS "dir='${dir}'")
 endforeach()
+
+
+message(${CMAKE_CXX_FLAGS_RELEASE})
