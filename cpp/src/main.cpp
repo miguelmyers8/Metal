@@ -21,7 +21,7 @@ int add(int i, int j) {
 
 double sum_of_sines(xt::pyarray<double>& m)
 {
-    auto sines = xt::sin(m);  // sines does not actually hold values.
+    auto sines = xt::sin(m); // sines does not actually hold values.
     return std::accumulate(sines.cbegin(), sines.cend(), 0.0);
 }
 

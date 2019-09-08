@@ -7,7 +7,7 @@ class Parameter(Tensor):
 
         if input_size and output_size is not None:
             np.random.seed(input_size)
-            data = np.random.randn(input_size, output_size) * np.sqrt(2 / output_size)
+            data = np.random.randn(input_size, output_size)
 
         elif inputs_ is not None:
             data = inputs_
