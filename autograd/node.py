@@ -65,7 +65,7 @@ class Node:
                 grad = Node(1.0)
             else:
                 raise RuntimeError("grad must be specified for non-0-Node")
-        
+                
         self.grad.data = self.grad.data + grad.data  # type: ignore
 
         for dependency in self.depends_on: #loop over the list

@@ -3,7 +3,7 @@ from typing import List, NamedTuple, Callable, Optional, Union
 import numpy as np
 from autograd.node import ensure_Node, Node, Dependency
 from autograd.math_operations import Sum, Add, MatMul, Mul, Sub, Div, Neg
-from autograd.tensor_modifications import Slice
+from autograd.tensor_modifications import Slice, Transpose
 
 class TensorBase(Node):
     """docstring for TensorBase."""
@@ -65,3 +65,6 @@ class TensorBase(Node):
 
     def sum(self) -> "Node":
         return Sum(self)._sum()
+
+    def T(self) -> "Node":
+        return Transpose(self)._T()
