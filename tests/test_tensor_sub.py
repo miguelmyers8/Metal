@@ -1,6 +1,6 @@
 import unittest
 import pytest
-
+import numpy as np
 from autograd.tensor import Tensor
 
 class TestTensorSub(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestTensorSub(unittest.TestCase):
 
         t1 -= 0.1
         assert t1.grad is None
-        assert t1.data.tolist() == [0.9, 1.9, 2.9]
+        assert t1.data.tolist() == np.float32([0.9, 1.9, 2.9]).tolist()
 
 
     def test_broadcast_sub(self):

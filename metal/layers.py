@@ -2,7 +2,7 @@ import numpy as np
 from autograd.tensor import Tensor
 from autograd.parameter import Parameter
 from metal.module import Module
-from autograd.tensorbase import Dependency
+from autograd.dependency import Dependency
 import math
 import copy
 

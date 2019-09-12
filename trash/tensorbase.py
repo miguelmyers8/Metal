@@ -3,7 +3,7 @@ from typing import List, NamedTuple, Callable, Optional, Union
 import numpy as np
 from autograd.node import ensure_Node, Node, Dependency
 from autograd.math_operations import Sum, Add, MatMul, Mul, Sub, Div, Neg
-from autograd.tensor_modifications import Slice, Transpose
+from autograd.tensor_modifications import Slice, Transpose, Reshape, Flatten
 
 class TensorBase(Node):
     """docstring for TensorBase."""
@@ -68,3 +68,9 @@ class TensorBase(Node):
 
     def T(self) -> "Node":
         return Transpose(self)._T()
+
+    def reshape(self,*newshape)-> "Node":
+        return Reshape(self,newshape)._reshape()
+
+    def flatten(self)->"Node":
+        return Flatten(self)._flatten()

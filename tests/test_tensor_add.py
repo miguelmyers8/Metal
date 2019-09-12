@@ -1,7 +1,7 @@
 import unittest
 import pytest
 from autograd.tensor import Tensor
-
+import numpy as np
 class TestTensorSum(unittest.TestCase):
     def test_simple_add(self):
         t1 = Tensor([1, 2, 3], requires_grad=True)
@@ -18,7 +18,7 @@ class TestTensorSum(unittest.TestCase):
 
         t1 += 0.1
         assert t1.grad is None
-        assert t1.data.tolist() == [1.1, 2.1, 3.1]
+        assert t1.data.tolist() == np.float32([1.1, 2.1, 3.1]).tolist()
 
     def test_broadcast_add(self):
         # What is broadcasting? A couple of things:

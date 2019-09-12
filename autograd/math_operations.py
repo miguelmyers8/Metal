@@ -1,49 +1,47 @@
 import numpy as np
-from autograd.node import Node
-from autograd.node import Dependency
-import autograd.tensor
+from autograd.dependency import Dependency
 
 
-class Sum():
-
-    def __init__(self, t: Node):
+class Sum(object):
+    def __init__(self, t):
+        self.type = type(t)
         self.t = t
 
-    def _sum(self) -> Node:
-        #Takes a Node and returns the 0-Node that's the sum of all its elements.
+    def _sum(self):
+        #Takes a Tensor and returns the 0-Tensor that's the sum of all its elements.
         data = self.t.data.sum()
         requires_grad = self.t.requires_grad
-
         if requires_grad:
-            depends_on = [Dependency(self.t, self.grad_fn)]
+            depends_on = [Dependency(self.t, self.grad_sum)]
         else:
             depends_on = []
-        return autograd.tensor.Tensor(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on)
 
-    def grad_fn(self, grad: np.ndarray) -> np.ndarray:
-        #grad is necessarily a 0-Node, so each input element contributes that much
+    def grad_sum(self, grad: np.ndarray) -> np.ndarray:
+        #grad is necessarily a 0-Tensor, so each input element contributes that much
         return grad * np.ones_like(self.t.data)
 
 
-class Add():
-
-    def __init__(self, t1: Node, t2: Node):
+class Add(object):
+    def __init__(self, t1, t2):
+        self.type = type(t1)
         self.t1 = t1
         self.t2 = t2
 
-    def _add(self) -> Node:
+
+    def _add(self):
         data = self.t1.data + self.t2.data
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
         depends_on: List[Dependency] = []
 
         if self.t1.requires_grad:
-            depends_on.append(Dependency(self.t1, self.grad_fn1))
+            depends_on.append(Dependency(self.t1, self.grad_add1))
         if self.t2.requires_grad:
-            depends_on.append(Dependency(self.t2, self.grad_fn2))
-        return autograd.tensor.Tensor(data, requires_grad, depends_on)
+            depends_on.append(Dependency(self.t2, self.grad_add2))
+        return self.type(data, requires_grad, depends_on)
 
 
-    def grad_fn1(self, grad: np.ndarray) -> np.ndarray:
+    def grad_add1(self, grad: np.ndarray) -> np.ndarray:
         # Sum out added dims
         ndims_added = grad.ndim - self.t1.data.ndim
         for _ in range(ndims_added):
@@ -54,7 +52,7 @@ class Add():
                 grad = grad.sum(axis=i, keepdims=True)
         return grad
 
-    def grad_fn2(self, grad: np.ndarray) -> np.ndarray:
+    def grad_add2(self, grad: np.ndarray) -> np.ndarray:
         # Sum out added dims
         ndims_added = grad.ndim - self.t2.data.ndim
         for _ in range(ndims_added):
@@ -65,25 +63,26 @@ class Add():
                 grad = grad.sum(axis=i, keepdims=True)
         return grad
 
-class Mul():
-    def __init__(self, t1: Node, t2: Node):
+class Mul(object):
+    def __init__(self, t1, t2):
+        self.type = type(t1)
         self.t1 = t1
         self.t2 = t2
 
 
-    def _mul(self) -> Node:
+    def _mul(self):
         data = self.t1.data * self.t2.data
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
         depends_on: List[Dependency] = []
 
         if self.t1.requires_grad:
-            depends_on.append(Dependency(self.t1, self.grad_fn1))
+            depends_on.append(Dependency(self.t1, self.grad_mul1))
         if self.t2.requires_grad:
-            depends_on.append(Dependency(self.t2, self.grad_fn2))
-        return autograd.tensor.Tensor(data, requires_grad, depends_on)
+            depends_on.append(Dependency(self.t2, self.grad_mul2))
+        return self.type(data, requires_grad, depends_on)
 
 
-    def grad_fn1(self, grad: np.ndarray) -> np.ndarray:
+    def grad_mul1(self, grad: np.ndarray) -> np.ndarray:
         grad = grad * self.t2.data
         # Sum out added dims
         ndims_added = grad.ndim - self.t1.data.ndim
@@ -96,7 +95,7 @@ class Mul():
         return grad
 
 
-    def grad_fn2(self, grad: np.ndarray) -> np.ndarray:
+    def grad_mul2(self, grad: np.ndarray) -> np.ndarray:
         grad = grad * self.t1.data
         # Sum out added dims
         ndims_added = grad.ndim - self.t2.data.ndim
@@ -109,11 +108,13 @@ class Mul():
         return grad
 
 
-class Neg():
-    def __init__(self, t: Node):
+class Neg(object):
+    def __init__(self, t):
+        self.type = type(t)
         self.t = t
 
-    def _neg(self) -> Node:
+
+    def _neg(self):
         data = -self.t.data
         requires_grad = self.t.requires_grad
         if requires_grad:
@@ -121,22 +122,25 @@ class Neg():
         else:
             depends_on = []
 
-        return autograd.tensor.Tensor(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on)
 
-class Sub():
-    def __init__(self, t1: Node, t2: Node):
+class Sub(object):
+    def __init__(self, t1, t2):
+        self.type = type(t1)
         self.t1 = t1
         self.t2 = t2
 
-    def _sub(self) -> Node:
+
+    def _sub(self):
         return self.t1 + -self.t2
 
-class MatMul():
-    def __init__(self, t1: Node, t2: Node):
+class MatMul(object):
+    def __init__(self, t1, t2):
+        self.type = type(t1)
         self.t1 = t1
         self.t2 = t2
 
-    def _matmul(self) -> Node:
+    def _matmul(self):
         """
         if t1 is (n1, m1) and t2 is (m1, m2), then t1 @ t2 is (n1, m2)
         so grad3 is (n1, m2)
@@ -149,35 +153,37 @@ class MatMul():
         depends_on: List[Dependency] = []
 
         if self.t1.requires_grad:
-            depends_on.append(Dependency(self.t1, self.grad_fn1))
+            depends_on.append(Dependency(self.t1, self.grad_mm1))
         if self.t2.requires_grad:
-            depends_on.append(Dependency(self.t2, self.grad_fn2))
+            depends_on.append(Dependency(self.t2, self.grad_mm2))
 
-        return autograd.tensor.Tensor(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on)
 
-    def grad_fn1(self, grad: np.ndarray) -> np.ndarray:
+    def grad_mm1(self, grad: np.ndarray) -> np.ndarray:
         return grad @ self.t2.data.T
 
-    def grad_fn2(self, grad: np.ndarray) -> np.ndarray:
+    def grad_mm2(self, grad: np.ndarray) -> np.ndarray:
         return self.t1.data.T @ grad
 
-class Div():
-    def __init__(self, t1: Node, t2: Node):
+class Div(object):
+    def __init__(self, t1, t2):
+        self.type = type(t1)
         self.t1 = t1
         self.t2 = t2
 
-    def _div(self) -> Node:
+
+    def _div(self):
         data = self.t1.data / self.t2.data
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
         depends_on: List[Dependency] = []
 
         if self.t1.requires_grad:
-            depends_on.append(Dependency(self.t1, self.grad_fn1))
+            depends_on.append(Dependency(self.t1, self.grad_div1))
         if self.t2.requires_grad:
-            depends_on.append(Dependency(self.t2, self.grad_fn2))
-        return autograd.tensor.Tensor(data, requires_grad, depends_on)
+            depends_on.append(Dependency(self.t2, self.grad_div2))
+        return self.type(data, requires_grad, depends_on)
 
-    def grad_fn1(self, grad: np.ndarray) -> np.ndarray:
+    def grad_div1(self, grad: np.ndarray) -> np.ndarray:
         grad = grad * (1 / self.t2.data)
         # Sum out added dims
         ndims_added = grad.ndim - self.t1.data.ndim
@@ -189,7 +195,7 @@ class Div():
                 grad = grad.sum(axis=i, keepdims=True)
         return grad
 
-    def grad_fn2(self, grad: np.ndarray) -> np.ndarray:
+    def grad_div2(self, grad: np.ndarray) -> np.ndarray:
         grad = grad * (-self.t1.data / (self.t2.data * self.t2.data))
         # Sum out added dims
         ndims_added = grad.ndim - self.t2.data.ndim
@@ -200,3 +206,24 @@ class Div():
             if dim == 1:
                 grad = grad.sum(axis=i, keepdims=True)
         return grad
+
+
+
+class Exp(object):
+    """docstring for Exp."""
+    def __init__(self, t):
+        super(Exp, self).__init__()
+        self.type = type(t)
+        self.t = t
+
+    def _exp(self):
+        data = np.exp(self.t.data)
+        requires_grad = self.t.requires_grad
+        if requires_grad:
+            depends_on = [Dependency(self.t, self.grad_exp)]
+        else:
+            depends_on = []
+        return self.type(data, requires_grad, depends_on)
+
+    def grad_exp(self, grad: np.array):
+        return grad * np.exp(self.t.data)

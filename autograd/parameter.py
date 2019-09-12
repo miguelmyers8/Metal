@@ -1,8 +1,8 @@
 import numpy as np
-from autograd.tensor import Tensor
+from autograd.node import Node
 
 
-class Parameter(Tensor):
+class Parameter(Node):
     def __init__(self, input_size=None, output_size=None, inputs_=None) -> None:
         if input_size and output_size is not None:
             np.random.seed(input_size)
