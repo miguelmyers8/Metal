@@ -28,7 +28,6 @@ class Add(object):
         self.t1 = t1
         self.t2 = t2
 
-
     def _add(self):
         data = self.t1.data + self.t2.data
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
@@ -69,7 +68,6 @@ class Mul(object):
         self.t1 = t1
         self.t2 = t2
 
-
     def _mul(self):
         data = self.t1.data * self.t2.data
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
@@ -80,7 +78,6 @@ class Mul(object):
         if self.t2.requires_grad:
             depends_on.append(Dependency(self.t2, self.grad_mul2))
         return self.type(data, requires_grad, depends_on)
-
 
     def grad_mul1(self, grad: np.ndarray) -> np.ndarray:
         grad = grad * self.t2.data
@@ -93,7 +90,6 @@ class Mul(object):
             if dim == 1:
                 grad = grad.sum(axis=i, keepdims=True)
         return grad
-
 
     def grad_mul2(self, grad: np.ndarray) -> np.ndarray:
         grad = grad * self.t1.data
@@ -113,7 +109,6 @@ class Neg(object):
         self.type = type(t)
         self.t = t
 
-
     def _neg(self):
         data = -self.t.data
         requires_grad = self.t.requires_grad
@@ -121,7 +116,6 @@ class Neg(object):
             depends_on = [Dependency(self.t, lambda x: -x)]
         else:
             depends_on = []
-
         return self.type(data, requires_grad, depends_on)
 
 class Sub(object):
@@ -129,7 +123,6 @@ class Sub(object):
         self.type = type(t1)
         self.t1 = t1
         self.t2 = t2
-
 
     def _sub(self):
         return self.t1 + -self.t2
@@ -156,7 +149,6 @@ class MatMul(object):
             depends_on.append(Dependency(self.t1, self.grad_mm1))
         if self.t2.requires_grad:
             depends_on.append(Dependency(self.t2, self.grad_mm2))
-
         return self.type(data, requires_grad, depends_on)
 
     def grad_mm1(self, grad: np.ndarray) -> np.ndarray:
@@ -171,12 +163,10 @@ class Div(object):
         self.t1 = t1
         self.t2 = t2
 
-
     def _div(self):
         data = self.t1.data / self.t2.data
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
         depends_on: List[Dependency] = []
-
         if self.t1.requires_grad:
             depends_on.append(Dependency(self.t1, self.grad_div1))
         if self.t2.requires_grad:
@@ -226,4 +216,42 @@ class Exp(object):
         return self.type(data, requires_grad, depends_on)
 
     def grad_exp(self, grad: np.array):
-        return grad * np.exp(self.t.data)
+        grad = grad * np.exp(self.t.data)
+        # Sum out added dims
+        ndims_added = grad.ndim - self.t.data.ndim
+        for _ in range(ndims_added):
+            grad = grad.sum(axis=0)
+        # Sum across broadcasted (but non-added dims)
+        for i, dim in enumerate(self.t.shape):
+            if dim == 1:
+                grad = grad.sum(axis=i, keepdims=True)
+        return grad
+
+
+class Max(object):
+    """docstring for Max."""
+    def __init__(self, t):
+        super(Max, self).__init__()
+        self.type = type(t)
+        self.t = t
+
+    def _max(self):
+        data = self.t.data.max()
+        requires_grad = self.t.requires_grad
+        if requires_grad:
+            depends_on = [Dependency(self.t, self.grad_max)]
+        else:
+            depends_on = []
+        return self.type(data, requires_grad, depends_on)
+
+    def grad_max(self, grad: np.array):
+        grad = np.equal(self.t.data, self.t.data.max()) * grad.sum()
+        # Sum out added dims
+        ndims_added = grad.ndim - self.t.data.ndim
+        for _ in range(ndims_added):
+            grad = grad.sum(axis=0)
+        # Sum across broadcasted (but non-added dims)
+        for i, dim in enumerate(self.t.shape):
+            if dim == 1:
+                grad = grad.sum(axis=i, keepdims=True)
+        return grad

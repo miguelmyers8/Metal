@@ -76,46 +76,11 @@ class Dense(Layer):
 
     def forward_pass(self, inputs, training=True):
         assert (type(inputs) == Parameter) or (type(inputs) == Tensor), f"#{inputs} need to be Parameter or Tensor"
-
-        self.inputs = inputs
-
-        output =  self.inputs.data.dot(self.w.data) + self.b.data
-        requires_grad = (self.inputs.requires_grad or self.w.requires_grad or self.b.requires_grad)
-        depends_on: List[Dependency] = []
-
         # freezing the layer parameter if necessary
         if self.trainable == False:
             self.w.requires_grad = False
             self.b.requires_grad = False
-
-        # applying weight gradient
-        if self.w.requires_grad:
-
-            def grad_fn_w(grad: np.ndarray) -> np.ndarray:
-                grad =  self.inputs.data.T.dot(grad)
-                return grad
-
-            depends_on.append(Dependency(self.w, grad_fn_w))
-
-        # applying biase gradient
-        if self.b.requires_grad:
-
-            def grad_fn_b(grad: np.ndarray) -> np.ndarray:
-                grad = np.sum(grad, axis=0, keepdims=True)
-                return grad
-
-            depends_on.append(Dependency(self.b, grad_fn_b))
-
-        # applying inputs gradient
-        if self.inputs.requires_grad:
-            # apply activation gradient
-            def grad_fn_a(grad: np.ndarray) -> np.ndarray:
-                grad = grad.dot(self.w.data.T)
-                return grad
-
-            depends_on.append(Dependency(self.inputs, grad_fn_a))
-
-        return Tensor(output, requires_grad, depends_on)
+        return inputs @ self.w + self.b
 
     def backward_pass(self):
         # Update the layer weights

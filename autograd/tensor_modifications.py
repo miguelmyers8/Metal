@@ -2,6 +2,7 @@ import numpy as np
 from autograd.dependency import Dependency
 
 class Slice(object):
+    """docstring for Slice."""
     def __init__(self, t, idxs):
         self.type = type(t)
         self.t = t
@@ -23,28 +24,28 @@ class Slice(object):
         return new_grad
 
 
-class Transpose(object):
+class T(object):
     """docstring for Transpose."""
-    def __init__(self, t):
-        super(Transpose, self).__init__()
+    def __init__(self, t, axis):
+        super(T, self).__init__()
         self.type = type(t)
         self.t = t
+        self.axis = axis
 
     def _T(self):
-        data = self.t.data.T
+        data = self.t.data.transpose(*self.axis)
         requires_grad = self.t.requires_grad
         if requires_grad:
-            depends_on = [Dependency(self.t, self.grad_transpose)]
+            depends_on = [Dependency(self.t, self.grad_t)]
         else:
             depends_on = []
         return self.type(data, requires_grad, depends_on)
 
-    def grad_transpose(self, grad: np.ndarray):
-        return grad.T
+    def grad_t(self, grad: np.ndarray):
+        return grad.transpose(*self.axis)
 
 class Reshape(object):
     """docstring for Reshape."""
-
     def __init__(self, t, newshape):
         super(Reshape, self).__init__()
         self.type = type(t)
@@ -67,7 +68,32 @@ class Reshape(object):
         return np.reshape(grad, old_shape)
 
 
-class Flatten():
+class Pad(object):
+    """docstring for Pad."""
+    def __init__(self, t, pad):
+        super(Pad, self).__init__()
+        self.type = type(t)
+        self.t = t
+        self.pad = pad
+
+    def _pad(self):
+        data = np.pad(self.t.data, self.pad[0], mode=self.pad[1])
+        requires_grad = self.t.requires_grad
+        if requires_grad:
+            depends_on = [Dependency(self.t, self.grad_pad)]
+        else:
+            depends_on = []
+        return self.type(data, requires_grad, depends_on)
+
+    def grad_pad(self, grad: np.array):
+        slices = []
+        for c in self.pad[0]:
+            e = None if c[1] == 0 else -c[1]
+            slices.append(slice(c[0], e))
+        return grad[tuple(slices)]
+
+class Flatten(object):
+    """docstring for Flatten."""
     def __init__(self, t):
         self.type = type(t)
         self.t = t
