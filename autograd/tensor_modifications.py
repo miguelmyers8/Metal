@@ -42,7 +42,7 @@ class T(object):
         return self.type(data, requires_grad, depends_on)
 
     def grad_t(self, grad: np.ndarray):
-        return grad.transpose(*self.axis)
+        return grad.reshape(self.t.data.shape)
 
 class Reshape(object):
     """docstring for Reshape."""
@@ -53,7 +53,7 @@ class Reshape(object):
         self.t = t
 
     def _reshape(self):
-        data = np.reshape(self.t.data, self.new_shape)
+        data = self.t.data.reshape(*self.new_shape)
         requires_grad = self.t.requires_grad
         if requires_grad:
             depends_on = [Dependency(self.t, self.grad_reshape)]
@@ -63,10 +63,8 @@ class Reshape(object):
 
     def grad_reshape(self, grad: np.array):
         old_shape = self.t.shape
-        if len(self.new_shape) + 1 == len(grad.shape):
-            old_shape = (grad.shape[0], *old_shape)
-        return np.reshape(grad, old_shape)
-
+        return grad.reshape(*old_shape)
+        #return grad.transpose([x for x in range(self.t.data.ndim)])
 
 class Pad(object):
     """docstring for Pad."""
@@ -91,21 +89,3 @@ class Pad(object):
             e = None if c[1] == 0 else -c[1]
             slices.append(slice(c[0], e))
         return grad[tuple(slices)]
-
-class Flatten(object):
-    """docstring for Flatten."""
-    def __init__(self, t):
-        self.type = type(t)
-        self.t = t
-
-    def _flatten(self):
-        data = np.reshape(self.t.data, (self.t.shape[0], -1))
-        requires_grad = self.t.requires_grad
-        if requires_grad:
-            depends_on = [Dependency(self.t, self.grad_flatten)]
-        else:
-            depends_on = []
-        return self.type(data, requires_grad, depends_on)
-
-    def grad_flatten(self, grad: np.array):
-        return np.reshape(grad, self.t.shape)

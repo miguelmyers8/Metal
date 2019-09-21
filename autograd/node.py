@@ -2,7 +2,7 @@ from __future__ import division
 from typing import List, NamedTuple, Callable, Optional, Union
 import numpy as np
 from autograd.math_operations import Sum, Add, MatMul, Mul, Sub, Div, Neg, Exp, Max
-from autograd.tensor_modifications import Slice, T, Reshape, Flatten, Pad
+from autograd.tensor_modifications import Slice, T, Reshape, Pad
 from autograd.dependency import Dependency
 from autograd.engin import  Autograd
 
@@ -112,7 +112,6 @@ class Node(object):
     def sum(self) -> "Tensor":
         return Sum(self)._sum()
 
-
     def T(self,*axis) -> "Tensor":
         return T(self,axis)._T()
 
@@ -125,13 +124,8 @@ class Node(object):
     def exp(self)->"Tensor":
         return Exp(self)._exp()
 
-
     def max(self)->"Tensor":
         return Max(self)._max()
-
-    # not work correctly
-    # def flatten(self)->"Tensor":
-        # return Flatten(self)._flatten()
 
     def backward(self, grad: "Tensor" = None) -> None:
         Autograd(self).backward(grad) # apply backward function wrapping the output gardent

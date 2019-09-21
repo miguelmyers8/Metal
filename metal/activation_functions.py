@@ -19,19 +19,8 @@ class Softmax():
         return e_x/ e_x.sum()
 
 class ReLU():
-    def __call__(self, tensor: Tensor) -> Tensor:
-        self.inputs = tensor
-        data = np.maximum(0, tensor.data)
-        requires_grad = tensor.requires_grad
-        if requires_grad:
-            depends_on = [Dependency(tensor, self.grad_Relu)]
-        else:
-            depends_on = []
-        return Tensor(data, requires_grad, depends_on)
-
-        def grad_Relu(self, grad: np.ndarray) -> np.ndarray:
-            grad[np.maximum(0, self.inputs.data) <= 0] = 0
-            return grad
+    def __call__(self,x):
+        return x * (x.data > 0)
 
 """
 class LeakyReLU():
