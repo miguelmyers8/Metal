@@ -64,8 +64,8 @@ class Dense(Layer):
     def initialize(self, optimizer=None):
         # Initialize the weights
         limit = 1 / math.sqrt(self.input_shape[0])
-        self.w = Parameter(inputs_ =np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
-        self.b = Parameter(inputs_ =np.zeros((1, self.n_units)))
+        self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
+        self.b = Parameter(data = np.zeros((1, self.n_units)))
         # Weight optimizers
         if optimizer is not None:
             self.w_opt  = copy.copy(optimizer)
@@ -125,14 +125,14 @@ class Conv2D(Layer):
         filter_height, filter_width = self.filter_shape
         channels = self.input_shape[0]
         limit = 1 / math.sqrt(np.prod(self.filter_shape))
-        self.w = Tensor(np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)),True)
-        self.b = Tensor(np.zeros((self.n_filters, 1)),True)
+        self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
+        self.b = Parameter(data = np.zeros((self.n_filters, 1)))
         # Weight optimizers
         if optimizer is not None:
             self.w_opt  = copy.copy(optimizer)
             self.b_opt = copy.copy(optimizer)
 
-    def parameters(self):
+    def parameters_(self):
         return np.prod(self.w.shape) + np.prod(self.b.shape)
 
     def forward_pass(self, X, training=True):
@@ -150,8 +150,12 @@ class Conv2D(Layer):
         # Redistribute axises so that batch size comes first
         return output.T(3,0,1,2)
 
-    def backward_pass(self, accum_grad):
-        pass
+    def backward_pass(self):
+        if self.trainable:
+            pass
+            #self.w = self.w_opt.update(self.w)
+            #self.b = self.b_opt.update(self.b)
+
 
     def output_shape(self):
         channels, height, width = self.input_shape

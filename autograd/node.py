@@ -18,10 +18,10 @@ def ensure_array(arrayable: Arrayable) -> np.ndarray:
         return np.array(arrayable).astype(np.float32, copy=False)
 
 
-Nodeable = Union["Tensor", float, np.ndarray]
+Nodeable = Union["Node", float, np.ndarray]
 
 
-def ensure_Node(Nodeable: Nodeable) -> "Tensor":
+def ensure_Node(Nodeable: Nodeable) -> "Node":
     if isinstance(Nodeable, Node):
         return Nodeable
     else:
@@ -34,7 +34,7 @@ class Node(object):
         self.requires_grad = requires_grad
         self.depends_on = depends_on or []
         self.shape = self._data.shape
-        self.grad: Optional["Tensor"] = None
+        self.grad: Optional["Node"] = None
         if id is None:
             id = np.random.randint(0, 100_000)
         self.id = id
@@ -55,77 +55,77 @@ class Node(object):
         self.grad = Node(np.zeros_like(self.data, dtype=np.float32))
 
     def __repr__(self) -> str:
-        return f"Tensor({self.data}, requires_grad={self.requires_grad})"
+        return f"Node({self.data}, requires_grad={self.requires_grad})"
 
-    def __add__(self, other) -> "Tensor":
+    def __add__(self, other) -> "Node":
         """gets called if I do t + other"""
         return Add(self,ensure_Node(other))._add()
 
-    def __radd__(self, other) -> "Tensor":
+    def __radd__(self, other) -> "Node":
         """gets called if I do other + t"""
         return Add(ensure_Node(other), self)._add()
 
-    def __iadd__(self, other) -> "Tensor":
+    def __iadd__(self, other) -> "Node":
         """when we do t += other"""
         self.data = self.data + ensure_Node(other).data
         return self
 
-    def __isub__(self, other) -> "Tensor":
+    def __isub__(self, other) -> "Node":
         """when we do t -= other"""
         self.data = self.data - ensure_Node(other).data
         return self
 
-    def __imul__(self, other) -> "Tensor":
+    def __imul__(self, other) -> "Node":
         """when we do t *= other"""
         self.data = self.data * ensure_Node(other).data
         return self
 
-    def __mul__(self, other) -> "Tensor":
+    def __mul__(self, other) -> "Node":
         return Mul(self, ensure_Node(other))._mul()
 
-    def __rmul__(self, other) -> "Tensor":
+    def __rmul__(self, other) -> "Node":
         return Mul(ensure_Node(other), self)._mul()
 
-    def __matmul__(self, other) -> "Tensor":
+    def __matmul__(self, other) -> "Node":
         return MatMul(self, other)._matmul()
 
-    def __neg__(self) -> "Tensor":
+    def __neg__(self) -> "Node":
         return Neg(self)._neg()
 
-    def __sub__(self, other) -> "Tensor":
+    def __sub__(self, other) -> "Node":
         return Sub(self, ensure_Node(other))._sub()
 
-    def __rsub__(self, other) -> "Tensor":
+    def __rsub__(self, other) -> "Node":
         return Sub(self, ensure_Node(other))._sub()
 
-    def __getitem__(self, idxs) -> "Tensor":
+    def __getitem__(self, idxs) -> "Node":
         return Slice(self, idxs)._slice()
 
-    def __truediv__(self, other) -> "Tensor":
+    def __truediv__(self, other) -> "Node":
         """gets called if I do t / other"""
         return Div(self, ensure_Node(other))._div()
 
-    def __rtruediv__(self, other) -> "Tensor":
+    def __rtruediv__(self, other) -> "Node":
         """gets called if I do other / t"""
         return Div(ensure_Node(other), self)._div()
 
-    def sum(self) -> "Tensor":
+    def sum(self) -> "Node":
         return Sum(self)._sum()
 
-    def T(self,*axis) -> "Tensor":
+    def T(self,*axis) -> "Node":
         return T(self,axis)._T()
 
-    def pad(self,*pad) -> "Tensor":
+    def pad(self,*pad) -> "Node":
         return Pad(self,pad)._pad()
 
-    def reshape(self,*newshape)-> "Tensor":
+    def reshape(self,*newshape)-> "Node":
         return Reshape(self,newshape)._reshape()
 
-    def exp(self)->"Tensor":
+    def exp(self)->"Node":
         return Exp(self)._exp()
 
-    def max(self)->"Tensor":
+    def max(self)->"Node":
         return Max(self)._max()
 
-    def backward(self, grad: "Tensor" = None) -> None:
+    def backward(self, grad: "Node" = None) -> None:
         Autograd(self).backward(grad) # apply backward function wrapping the output gardent
