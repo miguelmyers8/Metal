@@ -11,6 +11,14 @@ class TestTensorSum(unittest.TestCase):
 
         assert t1.grad.data.tolist() == [1, 1, 1]
 
+        t3 = Tensor([[1, 2, 3],[4, 5, 6]], requires_grad=True)
+        t4 = t3.sum(axis=0)
+        t5 = t4.sum()
+        t5.backward()
+
+        assert t3.grad.data.tolist() == [[1., 1., 1.],[1., 1., 1.]]
+        assert t4.grad.data.tolist() == [1., 1., 1.]
+
     def test_sum_with_grad(self):
         t1 = Tensor([1, 2, 3], requires_grad=True)
         t2 = t1.sum()

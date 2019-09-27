@@ -3,13 +3,20 @@ from autograd.dependency import Dependency
 
 
 class Sum(object):
-    def __init__(self, t):
+    def __init__(self, t, axis):
         self.type = type(t)
         self.t = t
+        self.axis = axis
 
     def _sum(self):
         #Takes a Tensor and returns the 0-Tensor that's the sum of all its elements.
-        data = self.t.data.sum()
+        if self.axis == None:
+            data = self.t.data.sum()
+            self.t_shape = self.t.shape
+        else:
+            data = self.t.data.sum(axis=self.axis)
+            self.t_shape = data.shape
+
         requires_grad = self.t.requires_grad
         if requires_grad:
             depends_on = [Dependency(self.t, self.grad_sum)]
@@ -19,7 +26,7 @@ class Sum(object):
 
     def grad_sum(self, grad: np.ndarray) -> np.ndarray:
         #grad is necessarily a 0-Tensor, so each input element contributes that much
-        return grad * np.ones_like(self.t.data)
+        return grad * np.ones(self.t_shape)
 
 
 class Add(object):

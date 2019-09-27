@@ -109,8 +109,8 @@ class Node(object):
         """gets called if I do other / t"""
         return Div(ensure_Node(other), self)._div()
 
-    def sum(self) -> "Node":
-        return Sum(self)._sum()
+    def sum(self,axis=None) -> "Node":
+        return Sum(self,axis)._sum()
 
     def T(self,*axis) -> "Node":
         return T(self,axis)._T()

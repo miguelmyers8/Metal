@@ -74,22 +74,24 @@ class Dense(Layer):
     def parameters_(self):
         return np.prod(self.W.shape) + np.prod(self.b.shape)
 
-    def forward_pass(self, inputs, training=True):
-        assert (type(inputs) == Parameter) or (type(inputs) == Tensor), f"#{inputs} need to be Parameter or Tensor"
+    def forward_pass(self, X, training=True):
+        assert (type(X) == Parameter) or (type(X) == Tensor), f"#{X} need to be Parameter or Tensor"
+        self.layer_input = X
         # freezing the layer parameter if necessary
         if self.trainable == False:
             self.w.requires_grad = False
             self.b.requires_grad = False
-        return inputs @ self.w + self.b
+        return X @ self.w + self.b
 
     def backward_pass(self):
         # Update the layer weights
-        self.w = self.w_opt.update(self.w)
-        self.b = self.b_opt.update(self.b)
-
+        if self.trainable:
+            self.w = self.w_opt.update(self.w)
+            self.b = self.b_opt.update(self.b)
+        # clear the gradients
         self.w.zero_grad()
         self.b.zero_grad()
-        self.inputs.zero_grad()
+        #self.X.zero_grad()
 
     def output_shape(self):
         return (self.n_units, )
@@ -138,6 +140,10 @@ class Conv2D(Layer):
     def forward_pass(self, X, training=True):
         batch_size, channels, height, width = X.shape
         self.layer_input = X
+        # freezing the layer parameter if necessary
+        if self.trainable == False:
+            self.w.requires_grad = False
+            self.b.requires_grad = False
         # Turn image shape into column shape
         # (enables dot product between input and weights)
         self.X_col = image_to_column(X, self.filter_shape, stride=self.stride, output_shape=self.padding)
@@ -152,10 +158,8 @@ class Conv2D(Layer):
 
     def backward_pass(self):
         if self.trainable:
-            pass
-            #self.w = self.w_opt.update(self.w)
-            #self.b = self.b_opt.update(self.b)
-
+            self.w = self.w_opt.update(self.w)
+            self.b = self.b_opt.update(self.b)
 
     def output_shape(self):
         channels, height, width = self.input_shape
