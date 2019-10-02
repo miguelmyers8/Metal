@@ -6,7 +6,7 @@ python 3.6<br>
 
 ## Installation
 Install this repo locally from top directory. <br/>
-$ pip install .
+$ pip install -e .
 
 ### Todo
 - [ ] ReLU Unit test
@@ -15,3 +15,4 @@ $ pip install .
 - [ ] TanH Unit test
 - [ ] Conv2D forward_pass Unit test
 - [ ] Conv2D backward_pass Unit test
+- [ ] integrate cupy for gpu computation into autograd

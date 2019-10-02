@@ -148,7 +148,7 @@ class MatMul(object):
             grad1 = grad3 @ t2.T
             grad2 = t1.T @ grad3
         """
-        data = self.t1.data @ self.t2.data
+        data = self.t1.data.dot(self.t2.data)
         requires_grad = self.t1.requires_grad or self.t2.requires_grad
         depends_on: List[Dependency] = []
 
@@ -159,10 +159,10 @@ class MatMul(object):
         return self.type(data, requires_grad, depends_on)
 
     def grad_mm1(self, grad: np.ndarray) -> np.ndarray:
-        return grad @ self.t2.data.T
+        return grad.dot(self.t2.data.T)
 
     def grad_mm2(self, grad: np.ndarray) -> np.ndarray:
-        return self.t1.data.T @ grad
+        return self.t1.data.T.dot(grad)
 
 class Div(object):
     def __init__(self, t1, t2):

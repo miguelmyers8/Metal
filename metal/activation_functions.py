@@ -22,17 +22,13 @@ class ReLU():
     def __call__(self,x):
         return x * (x.data > 0)
 
-"""
 class LeakyReLU():
-    def __init__(self, alpha=0.2):
-        self.alpha = alpha
+    def __call__(self, x, alpha=0.2):
+        y1 = ((x.data > 0) * x)
+        y2 = ((x.data <= 0) * x * alpha)
+        return y1 + y2
 
-    def __call__(self, x):
-        return np.where(x >= 0, x, self.alpha * x)
-
-    def gradient(self, x):
-        return np.where(x >= 0, 1, self.alpha)
-
+"""
 class ELU():
     def __init__(self, alpha=0.1):
         self.alpha = alpha

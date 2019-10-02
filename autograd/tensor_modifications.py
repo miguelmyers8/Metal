@@ -1,5 +1,6 @@
 import numpy as np
 from autograd.dependency import Dependency
+import math
 
 class Slice(object):
     """docstring for Slice."""
