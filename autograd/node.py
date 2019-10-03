@@ -12,10 +12,10 @@ Arrayable = Union[float, list, np.ndarray]
 
 def ensure_array(arrayable: Arrayable) -> np.ndarray:
     if isinstance(arrayable, np.ndarray):
-        arrayable =  arrayable.astype(np.float32, copy=False)
+        arrayable =  arrayable.astype(np.float64, copy=False)
         return arrayable
     else:
-        return np.array(arrayable).astype(np.float32, copy=False)
+        return np.array(arrayable).astype(np.float64, copy=False)
 
 
 Nodeable = Union["Node", float, np.ndarray]
@@ -52,7 +52,7 @@ class Node(object):
         self.grad = None
 
     def zero_grad(self) -> None:
-        self.grad = Node(np.zeros_like(self.data, dtype=np.float32))
+        self.grad = Node(np.zeros_like(self.data, dtype=np.float64))
 
     def __repr__(self) -> str:
         return f"Node({self.data}, requires_grad={self.requires_grad})"

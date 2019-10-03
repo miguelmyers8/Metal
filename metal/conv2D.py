@@ -4,7 +4,7 @@ from autograd.parameter import Parameter
 from autograd.dependency import Dependency
 import math
 import copy
-from autograd.custom_function_operations import IMG2COL
+from autograd.custom_function_operations import IMG2COL, Trans
 from autograd.util import determine_padding, get_im2col_indices
 from metal.layer import Layer
 
@@ -34,7 +34,7 @@ class Conv2D(Layer):
         self.stride = stride
         self.input_shape = input_shape
         self.trainable = True
-        self.seed = None
+        self.seed = seed
 
     def initialize(self, optimizer=None):
         np.random.seed(self.seed)
@@ -69,7 +69,7 @@ class Conv2D(Layer):
         # Reshape into (n_filters, out_height, out_width, batch_size)
         output = output.reshape(self.output_shape() + (batch_size, ))
         # Redistribute axises so that batch size comes first
-        return output.T(3,0,1,2)
+        return Trans(output,axis_f=(3,0,1,2),axis_b=(1, 2, 3, 0)).trans()
 
     def backward_pass(self):
         if self.trainable:

@@ -20,7 +20,7 @@ class Slice(object):
 
     def grad_slice(self, grad: np.ndarray) -> np.ndarray:
         old_shape = self.t.shape
-        new_grad = np.zeros(old_shape, dtype=np.float32)
+        new_grad = np.zeros(old_shape, dtype=np.float64)
         new_grad[self.idxs] = grad
         return new_grad
 

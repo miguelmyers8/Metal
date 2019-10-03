@@ -58,3 +58,24 @@ class IMG2COL(object):
 
         # Return image without padding
         return images_padded[:, :, pad_h[0]:height+pad_h[0], pad_w[0]:width+pad_w[0]]
+
+class Trans(object):
+    """docstring for Trans."""
+
+    def __init__(self, t, axis_f, axis_b):
+        super(Trans, self).__init__()
+        self.type = type(t)
+        self.t = t
+        self.axis_f = axis_f
+        self.axis_b = axis_b
+
+    def trans(self):
+        data = self.t.data.transpose(*self.axis_f)
+        requires_grad = self.t.requires_grad
+        depends_on: List[Dependency] = []
+        if self.t.requires_grad:
+            depends_on.append(Dependency(self.t, self.Trans_grad))
+        return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
+
+    def Trans_grad(self,grad):
+        return grad.transpose(*self.axis_b)

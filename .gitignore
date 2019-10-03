@@ -3,7 +3,6 @@ basic-test.ipynb
 /Dataset1
 /.ipynb_checkpoints
 /Untitled.ipynb
-/metal/layer.py
 /metal/dropout.py
 /BC.py
 /cython.ipynb
