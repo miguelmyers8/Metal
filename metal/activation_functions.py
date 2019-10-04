@@ -11,12 +11,7 @@ class Sigmoid():
 
 class TanH():
     def __call__(self, x):
-        return 2 / (1 + (-2 * x.exp())) - 1
-
-class Softmax():
-    def __call__(self, x):
-        e_x = -x.max().exp()
-        return e_x/ e_x.sum()
+        return (x.exp()-(-x).exp())/(x.exp(x)+(-x).exp())
 
 class ReLU():
     def __call__(self,x):
@@ -24,11 +19,23 @@ class ReLU():
 
 class LeakyReLU():
     def __call__(self, x, alpha=0.2):
-        y1 = ((x.data > 0) * x)
-        y2 = ((x.data <= 0) * x * alpha)
+        y1 = (x * (x.data > 0))
+        y2 = (x * alpha *(x.data <= 0))
         return y1 + y2
 
+
+
+
+
+
+
 """
+class Softmax():
+    def __call__(self, x):
+        x = x - x.max(axis=axis, keepdims=None)
+        y = np.exp(x)
+        return y / y.sum(axis=axis, keepdims=None)
+
 class ELU():
     def __init__(self, alpha=0.1):
         self.alpha = alpha

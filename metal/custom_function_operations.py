@@ -75,7 +75,7 @@ class Trans(object):
         data = self.t.data.transpose(*self.axis_f)
         requires_grad = self.t.requires_grad
         depends_on: List[Dependency] = []
-        if self.t.requires_grad:
+        if requires_grad:
             depends_on.append(Dependency(self.t, self.Trans_grad))
         return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
 

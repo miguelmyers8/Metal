@@ -9,8 +9,5 @@ Install this repo locally from top directory. <br/>
 $ pip install -e .
 
 ### Todo
-- [ ] ReLU Unit test
-- [ ] Sigmoid Unit test
-- [ ] Softmax Unit test
-- [ ] TanH Unit test
-- [ ] integrate cupy for gpu computation into autograd
+- [ ] Finish Unit test
+- [ ] Integrate cupy for gpu computation into autograd
