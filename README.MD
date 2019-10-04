@@ -13,6 +13,4 @@ $ pip install -e .
 - [ ] Sigmoid Unit test
 - [ ] Softmax Unit test
 - [ ] TanH Unit test
-- [ ] Conv2D forward_pass Unit test
-- [ ] Conv2D backward_pass Unit test
 - [ ] integrate cupy for gpu computation into autograd

@@ -69,12 +69,16 @@ class Conv2D(Layer):
         # Reshape into (n_filters, out_height, out_width, batch_size)
         output = output.reshape(self.output_shape() + (batch_size, ))
         # Redistribute axises so that batch size comes first
-        return Trans(output,axis_f=(3,0,1,2),axis_b=(1, 2, 3, 0)).trans()
+        return Trans(t=output, axis_f=(3,0,1,2), axis_b=(1, 2, 3, 0)).trans()
 
     def backward_pass(self):
         if self.trainable:
             self.w = self.w_opt.update(self.w)
             self.b = self.b_opt.update(self.b)
+        self.w.zero_grad()
+        self.b.zero_grad()
+        self.X_col.zero_grad()
+        self.W_col.zero_grad()
 
     def output_shape(self):
         channels, height, width = self.input_shape

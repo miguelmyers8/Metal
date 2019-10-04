@@ -1,4 +1,4 @@
-from metal.layers import Dense
+from metal.dense import Dense
 import unittest
 import pytest
 from autograd.tensor import Tensor

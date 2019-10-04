@@ -7,7 +7,7 @@ from autograd.dependency import Dependency
 
 class Sigmoid():
     def __call__(self, x):
-        return 1 / (1 + -x.exp())
+        return 1 / (1 + (-x).exp())
 
 class TanH():
     def __call__(self, x):
