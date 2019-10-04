@@ -4,7 +4,7 @@ from autograd.parameter import Parameter
 from autograd.dependency import Dependency
 import math
 import copy
-from autograd.custom_function_operations import IMG2COL, Trans
+from metal.custom_function_operations import IMG2COL, Trans
 from autograd.util import determine_padding, get_im2col_indices
 from metal.layer import Layer
 

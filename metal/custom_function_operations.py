@@ -3,6 +3,8 @@ from autograd.dependency import Dependency
 import math
 from autograd.util import determine_padding, get_im2col_indices
 
+"""fill for defining functions or a class that will forward prop and backward prop."""
+
 class IMG2COL(object):
     """docstring for IMG2COL."""
 
