@@ -5,28 +5,23 @@ from autograd.dependency import Dependency
 # Collection of activation functions
 # Reference: https://en.wikipedia.org/wiki/Activation_function
 
-class Sigmoid():
+class Sigmoid(object):
     def __call__(self, x):
         return 1 / (1 + (-x).exp())
 
-class TanH():
+class TanH(object):
     def __call__(self, x):
         return (x.exp()-(-x).exp())/(x.exp(x)+(-x).exp())
 
-class ReLU():
+class ReLU(object):
     def __call__(self,x):
         return x * (x.data > 0)
 
-class LeakyReLU():
+class LeakyReLU(object):
     def __call__(self, x, alpha=0.2):
         y1 = (x * (x.data > 0))
         y2 = (x * alpha *(x.data <= 0))
         return y1 + y2
-
-
-
-
-
 
 
 """
