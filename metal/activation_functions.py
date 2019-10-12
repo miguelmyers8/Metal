@@ -11,7 +11,7 @@ class Sigmoid(object):
 
 class TanH(object):
     def __call__(self, x):
-        return (x.exp()-(-x).exp())/(x.exp(x)+(-x).exp())
+        return (x.exp()-(-x).exp())/(x.exp()+(-x).exp())
 
 class ReLU(object):
     def __call__(self,x):
