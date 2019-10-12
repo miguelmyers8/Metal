@@ -12,20 +12,21 @@ Arrayable = Union[float, list, np.ndarray]
 
 def ensure_array(arrayable: Arrayable) -> np.ndarray:
     if isinstance(arrayable, np.ndarray):
-        arrayable =  arrayable.astype(np.float64, copy=False)
+        arrayable =  arrayable.astype(np.float32, copy=False)
         return arrayable
     else:
-        return np.array(arrayable).astype(np.float64, copy=False)
+        return np.array(arrayable).astype(np.float32, copy=False)
 
 
 Nodeable = Union["Node", float, np.ndarray]
 
 
-def ensure_Node(Nodeable: Nodeable) -> "Node":
+def ensure_Node(Nodeable: Nodeable, t) -> "Node":
     if isinstance(Nodeable, Node):
         return Nodeable
     else:
-        return Node(Nodeable)
+        type_ = type(t)
+        return type_(Nodeable)
 
 
 class Node(object):
@@ -52,39 +53,39 @@ class Node(object):
         self.grad = None
 
     def zero_grad(self) -> None:
-        self.grad = Node(np.zeros_like(self.data, dtype=np.float64))
+        self.grad = Node(np.zeros_like(self.data, dtype=np.float32))
 
     def __repr__(self) -> str:
         return f"Node({self.data}, requires_grad={self.requires_grad})"
 
     def __add__(self, other) -> "Node":
         """gets called if I do t + other"""
-        return Add(self,ensure_Node(other))._add()
+        return Add(self,ensure_Node(other,self))._add()
 
     def __radd__(self, other) -> "Node":
         """gets called if I do other + t"""
-        return Add(ensure_Node(other), self)._add()
+        return Add(ensure_Node(other,self), self)._add()
 
     def __iadd__(self, other) -> "Node":
         """when we do t += other"""
-        self.data = self.data + ensure_Node(other).data
+        self.data = self.data + ensure_Node(other,self).data
         return self
 
     def __isub__(self, other) -> "Node":
         """when we do t -= other"""
-        self.data = self.data - ensure_Node(other).data
+        self.data = self.data - ensure_Node(other,self).data
         return self
 
     def __imul__(self, other) -> "Node":
         """when we do t *= other"""
-        self.data = self.data * ensure_Node(other).data
+        self.data = self.data * ensure_Node(other,self).data
         return self
 
     def __mul__(self, other) -> "Node":
-        return Mul(self, ensure_Node(other))._mul()
+        return Mul(self, ensure_Node(other,self))._mul()
 
     def __rmul__(self, other) -> "Node":
-        return Mul(ensure_Node(other), self)._mul()
+        return Mul(ensure_Node(other,self), self)._mul()
 
     def __matmul__(self, other) -> "Node":
         return MatMul(self, other)._matmul()
@@ -93,21 +94,21 @@ class Node(object):
         return Neg(self)._neg()
 
     def __sub__(self, other) -> "Node":
-        return Sub(self, ensure_Node(other))._sub()
+        return Sub(self, ensure_Node(other,self))._sub()
 
     def __rsub__(self, other) -> "Node":
-        return Sub(self, ensure_Node(other))._sub()
+        return Sub(self, ensure_Node(other,self))._sub()
 
     def __getitem__(self, idxs) -> "Node":
         return Slice(self, idxs)._slice()
 
     def __truediv__(self, other) -> "Node":
         """gets called if I do t / other"""
-        return Div(self, ensure_Node(other))._div()
+        return Div(self, ensure_Node(other,self))._div()
 
     def __rtruediv__(self, other) -> "Node":
         """gets called if I do other / t"""
-        return Div(ensure_Node(other), self)._div()
+        return Div(ensure_Node(other,self), self)._div()
 
     def sum(self,axis=None) -> "Node":
         return Sum(self,axis)._sum()

@@ -5,6 +5,11 @@ from autograd.tensor import Tensor
 from autograd.parameter import Parameter
 import numpy as np
 
+"""
+To run this test go to autograd.node and convert data type to np.float64
+fill fix later
+"""
+
 true_c3out = np.array([[[[-0.7989904 ,  1.03200208,  0.23549887],
          [ 0.26745127,  0.97150722,  0.53558132],
          [ 0.32406323, -0.00254381,  0.33129527]],
