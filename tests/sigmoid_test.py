@@ -1,4 +1,4 @@
-from metal.activation_functions import Sigmoid as st
+from metal.layers.activation_functions import Sigmoid as st
 import unittest
 import pytest
 from autograd.tensor import Tensor

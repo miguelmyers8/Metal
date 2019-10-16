@@ -9,5 +9,6 @@ Install this repo locally from top directory. <br/>
 $ pip install -e .
 
 ### Todo
-- [ ] Finish Unit test
+- [ ] Finish Unittest
+- [ ] Clean cpp Package
 - [ ] Integrate cupy for gpu computation into autograd

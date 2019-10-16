@@ -1,4 +1,4 @@
-from metal.dense import Dense
+from metal.layers.dense import Dense
 import unittest
 import pytest
 from autograd.tensor import Tensor
@@ -27,5 +27,5 @@ class TestLayerDense(unittest.TestCase):
 
         s = f.sum()
         s.backward()
-        
+
         assert np.allclose(d1.w.grad.data, testWGrad)

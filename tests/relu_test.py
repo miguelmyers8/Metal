@@ -1,4 +1,4 @@
-from metal.activation_functions import ReLU as rl
+from metal.layers.activation_functions import ReLU as rl
 import unittest
 import pytest
 from autograd.tensor import Tensor

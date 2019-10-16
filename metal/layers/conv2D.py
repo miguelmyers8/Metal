@@ -6,7 +6,7 @@ import math
 import copy
 from metal.functions import IMG2COL, Trans
 from autograd.util import determine_padding, get_im2col_indices
-from metal.layer import Layer
+from metal.layers.layer import Layer
 
 
 class Conv2D(Layer):

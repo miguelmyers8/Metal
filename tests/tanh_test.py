@@ -1,4 +1,4 @@
-from metal.activation_functions import TanH as th
+from metal.layers.activation_functions import TanH as th
 import unittest
 import pytest
 from autograd.tensor import Tensor

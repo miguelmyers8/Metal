@@ -1,4 +1,4 @@
-from metal.conv2D import Conv2D
+from metal.layers.conv2D import Conv2D
 import unittest
 import pytest
 from autograd.tensor import Tensor

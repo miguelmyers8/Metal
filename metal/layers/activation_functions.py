@@ -1,26 +1,27 @@
 import numpy as np
 from autograd.tensor import Tensor
 from autograd.dependency import Dependency
+from metal.layers.layer import Layer
 
 # Collection of activation functions
 # Reference: https://en.wikipedia.org/wiki/Activation_function
 
-class Sigmoid(object):
+class Sigmoid(Layer):
     def __call__(self, x):
         return 1 / (1 + (-x).exp())
 
-class TanH(object):
+class TanH(Layer):
     def __call__(self, x):
-        return (x.exp()-(-x).exp())/(x.exp()+(-x).exp())
+        return (x.exp() - (-x).exp()) / (x.exp() + (-x).exp())
 
-class ReLU(object):
+class ReLU(Layer):
     def __call__(self,x):
         return x * (x.data > 0)
 
-class LeakyReLU(object):
+class LeakyReLU(Layer):
     def __call__(self, x, alpha=0.2):
         y1 = (x * (x.data > 0))
-        y2 = (x * alpha *(x.data <= 0))
+        y2 = (x * alpha * (x.data <= 0))
         return y1 + y2
 
 

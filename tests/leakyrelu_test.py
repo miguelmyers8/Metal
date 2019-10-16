@@ -1,4 +1,4 @@
-from metal.activation_functions import LeakyReLU as rl
+from metal.layers.activation_functions import LeakyReLU as rl
 import unittest
 import pytest
 from autograd.tensor import Tensor

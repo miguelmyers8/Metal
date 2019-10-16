@@ -5,7 +5,7 @@ from metal.module import Module
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layer import Layer
+from metal.layers.layer import Layer
 
 class Dense(Layer):
     """A fully-connected NN layer.
