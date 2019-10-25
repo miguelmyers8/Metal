@@ -14,6 +14,8 @@ basic-test.ipynb
 /experimental/lib/__pycache__
 /metal.egg-info
 /trash
+/board
+/viz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

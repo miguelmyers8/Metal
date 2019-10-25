@@ -3,7 +3,8 @@ from autograd.node import Node
 
 
 class Parameter(Node):
-    def __init__(self, data=None, requires_grad=True, depends_on=None, create_array=None):
+    def __init__(self, data=None, requires_grad=True, depends_on=None, create_array=None, name=None):
+        self.name = name
         if create_array is not None:
             np.random.seed(create_array[0])
             data_ = np.random.randn(*create_array)

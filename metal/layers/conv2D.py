@@ -5,7 +5,7 @@ from autograd.dependency import Dependency
 import math
 import copy
 from metal.functions import IMG2COL, Trans
-from autograd.util import determine_padding, get_im2col_indices
+from metal.utils.layer_data_manipulations import determine_padding, get_im2col_indices
 from metal.layers.layer import Layer
 
 
@@ -26,6 +26,10 @@ class Conv2D(Layer):
         matches the input height and width. For 'valid' no padding is added.
     stride: int
         The stride length of the filters during the convolution over the input.
+
+    Resources:
+    ----------
+    https://www.youtube.com/watch?v=XuD4C8vJzEQ&list=PLkDaE6sCZn6Gl29AoE31iwdVwSG-KnDzF&index=1
     """
     def __init__(self, n_filters, filter_shape, input_shape=None, padding='same', stride=1, seed=None):
         self.n_filters = n_filters
@@ -42,6 +46,7 @@ class Conv2D(Layer):
         filter_height, filter_width = self.filter_shape
         channels = self.input_shape[0]
         limit = 1 / math.sqrt(np.prod(self.filter_shape))
+        # create filter
         self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
         self.b = Parameter(data = np.zeros((self.n_filters, 1)))
         # Weight optimizers

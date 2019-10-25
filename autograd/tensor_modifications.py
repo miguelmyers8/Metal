@@ -4,9 +4,10 @@ import math
 
 class Slice(object):
     """docstring for Slice."""
-    def __init__(self, t, idxs):
+    def __init__(self, t, idxs, name_child=None):
         self.type = type(t)
         self.t = t
+        self.name = name_child
         self.idxs = idxs
 
     def _slice(self):
@@ -16,7 +17,7 @@ class Slice(object):
             depends_on = [Dependency(self.t, self.grad_slice)]
         else:
             depends_on = []
-        return self.type(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on, name=self.name)
 
     def grad_slice(self, grad: np.ndarray) -> np.ndarray:
         old_shape = self.t.shape
@@ -27,11 +28,11 @@ class Slice(object):
 
 class T(object):
     """docstring for Transpose."""
-    def __init__(self, t, axis):
-        super(T, self).__init__()
+    def __init__(self, t, axis, name_child=None):
         self.type = type(t)
         self.t = t
         self.axis = axis
+        self.name = name_child
 
     def _T(self):
         data = self.t.data.transpose(*self.axis)
@@ -40,18 +41,20 @@ class T(object):
             depends_on = [Dependency(self.t, self.grad_t)]
         else:
             depends_on = []
-        return self.type(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on, name=self.name)
 
     def grad_t(self, grad: np.ndarray):
         return grad.reshape(self.t.data.shape)
 
 class Reshape(object):
     """docstring for Reshape."""
-    def __init__(self, t, newshape):
+    def __init__(self, t, newshape, name_child=None):
         super(Reshape, self).__init__()
         self.type = type(t)
         self.new_shape = newshape
         self.t = t
+        self.name = name_child
+
 
     def _reshape(self):
         data = self.t.data.reshape(*self.new_shape)
@@ -60,7 +63,7 @@ class Reshape(object):
             depends_on = [Dependency(self.t, self.grad_reshape)]
         else:
             depends_on = []
-        return self.type(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on, name=self.name)
 
     def grad_reshape(self, grad: np.array):
         old_shape = self.t.shape
@@ -69,11 +72,12 @@ class Reshape(object):
 
 class Pad(object):
     """docstring for Pad."""
-    def __init__(self, t, pad):
+    def __init__(self, t, pad, name_child=None):
         super(Pad, self).__init__()
         self.type = type(t)
         self.t = t
         self.pad = pad
+        self.name = name_child
 
     def _pad(self):
         data = np.pad(self.t.data, self.pad[0], mode=self.pad[1])
@@ -82,7 +86,7 @@ class Pad(object):
             depends_on = [Dependency(self.t, self.grad_pad)]
         else:
             depends_on = []
-        return self.type(data, requires_grad, depends_on)
+        return self.type(data, requires_grad, depends_on, name=self.name )
 
     def grad_pad(self, grad: np.array):
         slices = []
