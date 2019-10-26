@@ -77,13 +77,13 @@ class Conv2D(Layer):
         return Trans(t=output, axis_f=(3,0,1,2), axis_b=(1, 2, 3, 0)).trans()
 
     def backward_pass(self):
+        # Update the layer weights
         if self.trainable:
             self.w = self.w_opt.update(self.w)
             self.b = self.b_opt.update(self.b)
-        self.w.zero_grad()
-        self.b.zero_grad()
-        self.X_col.zero_grad()
-        self.W_col.zero_grad()
+        # clear the gradients
+        for p in self.parameters():
+            p.zero_grad()
 
     def output_shape(self):
         channels, height, width = self.input_shape

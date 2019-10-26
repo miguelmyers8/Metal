@@ -17,6 +17,6 @@ class StochasticGradientDescent():
         if self.w_updt is None:
             self.w_updt = np.zeros(np.shape(w.data))
         # Use momentum if set
-        self.w_updt = self.momentum * Tensor(self.w_updt) + (1 - self.momentum) * w.grad
+        self.w_updt = self.momentum * self.w_updt + (1 - self.momentum) * w.grad
         # Move against the gradient to minimize loss
         return w - self.learning_rate * self.w_updt

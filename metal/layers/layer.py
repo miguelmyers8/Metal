@@ -5,6 +5,16 @@ from metal.module import Module
 from autograd.dependency import Dependency
 import math
 import copy
+from metal.layers.activation_functions import Sigmoid, ReLU, LeakyReLU, TanH
+
+
+
+activation_functions = {
+    'relu': ReLU,
+    'sigmoid': Sigmoid,
+    'leaky_relu': LeakyReLU,
+    'tanh': TanH,
+}
 
 class Layer(Module):
     """docstring for Layer."""
@@ -36,3 +46,32 @@ class Layer(Module):
     def output_shape(self):
         """ The shape of the output produced by forward_pass """
         raise NotImplementedError()
+
+
+
+class Activation(Layer):
+    """A layer that applies an activation operation to the input.
+
+    Parameters:
+    -----------
+    name: string
+        The name of the activation function that will be used.
+    """
+
+    def __init__(self, name):
+        self.activation_name = name
+        self.activation_func = activation_functions[name]()
+        self.trainable = True
+
+    def layer_name(self):
+        return "Activation (%s)" % (self.activation_func.__class__.__name__)
+
+    def forward_pass(self, X, training=True):
+        self.layer_input = X
+        return self.activation_func(X)
+
+    def backward_pass(self, accum_grad):
+        return accum_grad * self.activation_func.gradient(self.layer_input)
+
+    def output_shape(self):
+        return self.input_shape
