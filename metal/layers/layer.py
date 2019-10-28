@@ -36,7 +36,7 @@ class Layer(Module):
         """ Propogates the signal forward in the network """
         raise NotImplementedError()
 
-    def backward_pass(self, accum_grad):
+    def backward_pass(self):
         """ Propogates the accumulated gradient backwards in the network.
         If the has trainable weights then these weights are also tuned in this method.
         As input (accum_grad) it receives the gradient with respect to the output of the layer and
@@ -70,8 +70,8 @@ class Activation(Layer):
         self.layer_input = X
         return self.activation_func(X)
 
-    def backward_pass(self, accum_grad):
-        return accum_grad * self.activation_func.gradient(self.layer_input)
+    def backward_pass(self):
+        pass
 
     def output_shape(self):
         return self.input_shape

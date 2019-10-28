@@ -27,7 +27,7 @@ class SquareLoss(Loss):
 
 
     def loss(self):
-        data = 0.5 * np.power((y.data - p.data), 2)
+        data = np.mean(0.5 * np.power((y.data - p.data), 2))
         requires_grad = self.p.requires_grad
         if requires_grad:
             depends_on = [Dependency(self.p, self.gradient_SquareLoss)]
@@ -53,7 +53,7 @@ class CrossEntropy(Loss):
     def loss(self):
         # Avoid division by zero
         p = np.clip(self.p.data, 1e-15, 1 - 1e-15)
-        data = - self.y.data * np.log(p) - (1 - self.y.data) * np.log(1 - p)
+        data = np.mean(- self.y.data * np.log(p) - (1 - self.y.data) * np.log(1 - p))
         requires_grad = self.p.requires_grad
         if requires_grad:
             depends_on = [Dependency(self.p, self.gradient_CrossEntropy)]
@@ -66,5 +66,5 @@ class CrossEntropy(Loss):
         p = np.clip(self.p.data, 1e-15, 1 - 1e-15)
         return - (self.y.data / p) + (1 - self.y.data) / (1 - p) * grad
 
-    def acc(self, y, p):
-        return accuracy_score(np.argmax(y.data, axis=1), np.argmax(p.data, axis=1))
+    def acc(self):
+        return accuracy_score(np.argmax(self.y.data, axis=1), np.argmax(self.p.data, axis=1))

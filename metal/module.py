@@ -1,6 +1,5 @@
 from typing import Iterator
 import inspect
-
 from autograd.tensor import Tensor
 from autograd.parameter import Parameter
 

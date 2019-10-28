@@ -30,12 +30,13 @@ def ensure_Type(Nodeable: Nodeable, t) -> "Node":
 
 
 class Node(object):
-    def __init__(self,data: Arrayable,requires_grad: bool = False,depends_on: List[Dependency] = None, id = None,) -> None:
+    def __init__(self,data: Arrayable,requires_grad: bool = False,depends_on: List[Dependency] = None, id = None, name=None) -> None:
         self._data = ensure_array(data)
         self.requires_grad = requires_grad
         self.depends_on = depends_on or []
         self.shape = self._data.shape
         self.grad: Optional["Node"] = None
+        self.name = name
         if id is None:
             id = np.random.randint(0, 100_000)
         self.id = id
@@ -53,7 +54,8 @@ class Node(object):
         self.grad = None
 
     def zero_grad(self) -> None:
-        self.grad = Node(np.zeros_like(self.data, dtype=np.float32))
+        self.type = type(self)
+        self.grad = self.type(np.zeros_like(self.data, dtype=np.float32),requires_grad=False)
 
     def __repr__(self) -> str:
         return f"Node({self.data}, requires_grad={self.requires_grad})"
