@@ -1,8 +1,12 @@
+#!/usr/bin/env pypy3
+
 import numpy as np
 from autograd.dependency import Dependency
 import math
 
 class Slice(object):
+    __slots__ = ('type','t','name','idxs')
+
     """docstring for Slice."""
     def __init__(self, t, idxs, name_child=None):
         self.type = type(t)
@@ -27,6 +31,8 @@ class Slice(object):
 
 
 class T(object):
+    __slots__ = ('type','t','axis','name')
+
     """docstring for Transpose."""
     def __init__(self, t, axis, name_child=None):
         self.type = type(t)
@@ -47,6 +53,8 @@ class T(object):
         return grad.reshape(self.t.data.shape)
 
 class Reshape(object):
+    __slots__ = ('type','new_shape','t','name')
+
     """docstring for Reshape."""
     def __init__(self, t, newshape, name_child=None):
         super(Reshape, self).__init__()
@@ -71,6 +79,8 @@ class Reshape(object):
         #return grad.transpose([x for x in range(self.t.data.ndim)])
 
 class Pad(object):
+    __slots__ = ('type','t','pad','name')
+
     """docstring for Pad."""
     def __init__(self, t, pad, name_child=None):
         super(Pad, self).__init__()

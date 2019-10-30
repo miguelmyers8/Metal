@@ -1,3 +1,5 @@
+#!/usr/bin/env pypy3
+
 import numpy as np
 from autograd.node import Node
 

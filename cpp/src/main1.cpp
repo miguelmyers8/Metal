@@ -14,6 +14,13 @@ int sub(int i, int j) {
     return i - j;
 }
 
+auto mul(xt::pyarray<double> m, xt::pyarray<double> k)
+{
+    xt::pyarray<double> o =  m*k;
+    return o;
+
+}
+
 
 double sum_of_sines(xt::pyarray<double>& m)
 {
@@ -37,6 +44,8 @@ PYBIND11_MODULE(_mod2, m)
     m.def("matmul", matmul, "matrixmul");
 
     m.def("sub", sub, "subtract");
+
+    m.def("mul", mul, "m");
 
 
 #ifdef VERSION_INFO

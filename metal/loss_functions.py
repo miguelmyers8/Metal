@@ -52,8 +52,8 @@ class CrossEntropy(Loss):
 
     def loss(self):
         # Avoid division by zero
-        p = np.clip(self.p.data, 1e-15, 1 - 1e-15)
-        data = np.mean(- self.y.data * np.log(p) - (1 - self.y.data) * np.log(1 - p))
+        p = np.clip(self.p.data.astype('float64'), 1e-15, 1 - 1e-15)
+        data = np.mean(- self.y.data.astype('float64') * np.log(p) - (1 - self.y.data.astype('float64')) * np.log(1 - p))
         requires_grad = self.p.requires_grad
         if requires_grad:
             depends_on = [Dependency(self.p, self.gradient_CrossEntropy)]
@@ -63,8 +63,9 @@ class CrossEntropy(Loss):
 
     def gradient_CrossEntropy(self,grad):
         # Avoid division by zero
-        p = np.clip(self.p.data, 1e-15, 1 - 1e-15)
-        return - (self.y.data / p) + (1 - self.y.data) / (1 - p) * grad
+        p = np.clip(self.p.data.astype('float64'), 1e-15, 1 - 1e-15)
+        d = - (self.y.data.astype('float64') / p) + (1 - self.y.data.astype('float64')) / (1 - p) * grad.astype('float64')
+        return d.astype('float32')
 
     def acc(self):
         return accuracy_score(np.argmax(self.y.data, axis=1), np.argmax(self.p.data, axis=1))

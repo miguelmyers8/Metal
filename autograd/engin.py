@@ -1,3 +1,5 @@
+#!/usr/bin/env pypy3
+
 class Autograd(object):
     """docstring for Autograd."""
 

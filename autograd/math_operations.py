@@ -1,13 +1,19 @@
+#!/usr/bin/env pypy3
+
+
 import numpy as np
 from autograd.dependency import Dependency
 
 
 class Sum(object):
+    __slots__ = ('type','t','axis','name','t_shape')
+
     def __init__(self, t, axis, name_child=None):
         self.type = type(t)
         self.t = t
         self.axis = axis
         self.name = name_child
+        self.t_shape = None
 
 
     def _sum(self):
@@ -32,6 +38,8 @@ class Sum(object):
 
 
 class Add(object):
+    __slots__ = ('type','t1','t2','name')
+
     def __init__(self, t1, t2, name_child=None):
         self.type = type(t1)
         self.t1 = t1
@@ -73,6 +81,8 @@ class Add(object):
         return grad
 
 class Mul(object):
+    __slots__ = ('type','t1','t2','name')
+
     def __init__(self, t1, t2, name_child=None):
         self.type = type(t1)
         self.t1 = t1
@@ -116,6 +126,8 @@ class Mul(object):
 
 
 class Neg(object):
+    __slots__ = ('type','t','name')
+
     def __init__(self, t, name_child=None):
         self.type = type(t)
         self.t = t
@@ -131,6 +143,8 @@ class Neg(object):
         return self.type(data, requires_grad, depends_on, name=self.name)
 
 class Sub(object):
+    __slots__ = ('type','t1','t2','name')
+
     def __init__(self, t1, t2, name_child=None):
         self.type = type(t1)
         self.t1 = t1
@@ -143,6 +157,8 @@ class Sub(object):
         return t3
 
 class MatMul(object):
+    __slots__ = ('type','t1','t2','name')
+
     def __init__(self, t1, t2, name_child = None):
         self.type = type(t1)
         self.t1 = t1
@@ -175,6 +191,8 @@ class MatMul(object):
         return self.t1.data.T.dot(grad)
 
 class Div(object):
+    __slots__ = ('type','t1','t2','name')
+
     def __init__(self, t1, t2, name_child = None):
         self.type = type(t1)
         self.t1 = t1
@@ -218,6 +236,8 @@ class Div(object):
 
 
 class Exp(object):
+    __slots__ = ('type','t','name')
+
     """docstring for Exp."""
     def __init__(self, t,  name_child = None):
         self.type = type(t)
@@ -247,6 +267,8 @@ class Exp(object):
 
 
 class Max(object):
+    __slots__ = ('type','t','name')
+
     """docstring for Max."""
     def __init__(self, t, name_child = None):
         self.type = type(t)

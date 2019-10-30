@@ -1,3 +1,4 @@
+#!/usr/bin/env pypy3
 from __future__ import division
 from typing import List, NamedTuple, Callable, Optional, Union
 import numpy as np
@@ -26,10 +27,12 @@ def ensure_Type(Nodeable: Nodeable, t) -> "Node":
         return Nodeable
     else:
         TYPE = type(t)
-        return TYPE(Nodeable)
+        return TYPE(Nodeable, requires_grad=False)
+
 
 
 class Node(object):
+    __slots__ = ('_data','requires_grad','depends_on','shape','grad','name','id')
     def __init__(self,data: Arrayable,requires_grad: bool = False,depends_on: List[Dependency] = None, id = None, name=None) -> None:
         self._data = ensure_array(data)
         self.requires_grad = requires_grad
