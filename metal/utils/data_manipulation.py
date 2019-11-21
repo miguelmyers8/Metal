@@ -4,7 +4,6 @@ import numpy as np
 import math
 import sys
 
-
 def shuffle_data(X, y, seed=None):
     """ Random shuffle of the samples in X and y """
     if seed:
@@ -47,12 +46,12 @@ def polynomial_features(X, degree):
         combs = [combinations_with_replacement(range(n_features), i) for i in range(0, degree + 1)]
         flat_combs = [item for sublist in combs for item in sublist]
         return flat_combs
-    
+
     combinations = index_combinations()
     n_output_features = len(combinations)
     X_new = np.empty((n_samples, n_output_features))
-    
-    for i, index_combs in enumerate(combinations):  
+
+    for i, index_combs in enumerate(combinations):
         X_new[:, i] = np.prod(X[:, index_combs], axis=1)
 
     return X_new
@@ -165,3 +164,16 @@ def make_diagonal(x):
     for i in range(len(m[0])):
         m[i, i] = x[i]
     return m
+
+#def transform_single_img(img=None,shape=None,blkwhite=False):
+    #my_image = str(img)
+    #if blkwhite:
+        #mode = 'L'
+    #else:
+        #mode = None
+    #parentDirectory = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    #image_ = Image.open(os.path.join(parentDirectory, 'metal_py/metal/images/', my_image))
+    #new_img = image_.resize((shape[2],shape[3]))
+    #I = np.asarray(new_img)
+    #I = I.reshape(*shape)
+    #return I

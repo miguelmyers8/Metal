@@ -1,4 +1,4 @@
-# Metal
+# metal
 A toy deep learning framework. This repo consist of my multiple deep learning tutorial and github repos group together to form this project.
 
 ## Requirements

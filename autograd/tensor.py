@@ -1,5 +1,3 @@
-#!/usr/bin/env pypy3
-
 
 from typing import List
 import numpy as np

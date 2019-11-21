@@ -1,10 +1,9 @@
-#!/usr/bin/env pypy3
 
-class Autograd(object):
-    """docstring for Autograd."""
+class autograd(object):
+    """docstring for autograd."""
 
     def __init__(self, t):
-        super(Autograd, self).__init__()
+        super(autograd, self).__init__()
         self.type = type(t)
         self.t = t
 

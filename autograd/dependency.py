@@ -1,4 +1,3 @@
-#!/usr/bin/env pypy3
 
 from typing import List, NamedTuple, Callable, Optional, Union
 import numpy as np

@@ -1,11 +1,10 @@
-#!/usr/bin/env pypy3
 from __future__ import division
 from typing import List, NamedTuple, Callable, Optional, Union
 import numpy as np
 from autograd.math_operations import Sum, Add, MatMul, Mul, Sub, Div, Neg, Exp, Max
 from autograd.tensor_modifications import Slice, T, Reshape, Pad
 from autograd.dependency import Dependency
-from autograd.engin import  Autograd
+from autograd.engin import  autograd
 
 
 Arrayable = Union[float, list, np.ndarray]
@@ -134,4 +133,4 @@ class Node(object):
         return Max(self)._max()
 
     def backward(self, grad: "Node" = None) -> None:
-        Autograd(self).backward(grad) # apply backward function wrapping the output gardent
+        autograd(self).backward(grad) # apply backward function wrapping the output gardent

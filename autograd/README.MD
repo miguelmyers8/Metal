@@ -1,4 +1,4 @@
-# Autograd
+# autograd
 Pytorch like Auto differentiation framework for deep learning.
 
 ## Requirements
