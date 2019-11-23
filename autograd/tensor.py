@@ -4,6 +4,7 @@ import numpy as np
 from autograd.node import Node
 from autograd.dependency import Dependency
 
+
 class Tensor(Node):
     """docstring for Tensor."""
     def __init__(self, data: np.ndarray, requires_grad: bool = False, depends_on: List[Dependency] = None, name=None):
