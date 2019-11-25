@@ -1,7 +1,7 @@
 # Metal
 A toy deep learning framework. This repo consist of my multiple deep learning tutorial and github repos group together to form this project.
 
-## recourses
+## Resources
  [eriklindernoren/ML-From-Scratch](https://github.com/eriklindernoren/ML-From-Scratch)<br>
  [joelgrus/autograd](https://github.com/joelgrus/autograd)<br>
  [deeplearning.ai](https://www.deeplearning.ai/)<br>
