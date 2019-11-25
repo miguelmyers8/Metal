@@ -1,11 +1,14 @@
 from __future__ import print_function, division
+from terminaltables import AsciiTable
 import numpy as np
+import progressbar
 from metal.utils import batch_iterator
-
+from metal.utils.misc import bar_widgets
+import matplotlib.pyplot as plt
 
 class NeuralNetwork():
-    """Neural Network. Deep Learning base model.
 
+    """Neural Network. Deep Learning base model.
     Parameters:
     -----------
     optimizer: class
@@ -21,7 +24,7 @@ class NeuralNetwork():
         self.layers = []
         self.errors = {"training": [], "validation": []}
         self.loss_function = loss
-
+        self.progressbar = progressbar.ProgressBar(widgets=bar_widgets)
         self.val_set = None
         if validation_data:
             X, y = validation_data
@@ -68,7 +71,7 @@ class NeuralNetwork():
 
     def fit(self, X, y, n_epochs, batch_size):
         """ Trains the model for a fixed number of epochs """
-        for _ in range(n_epochs):
+        for _ in self.progressbar(range(n_epochs)):
 
             batch_error = []
             for X_batch, y_batch in batch_iterator(X, y, batch_size=batch_size):
@@ -95,24 +98,40 @@ class NeuralNetwork():
         for layer in reversed(self.layers):
             loss_grad = layer.backward_pass()
 
-    #def summary(self, name="Model Summary"):
+    def summary(self, name="Model Summary"):
         # Print model name
-        #print (AsciiTable([[name]]).table)
+        print (AsciiTable([[name]]).table)
         # Network input shape (first layer's input shape)
-        #print ("Input Shape: %s" % str(self.layers[0].input_shape))
+        print ("Input Shape: %s" % str(self.layers[0].input_shape))
         # Iterate through network and get each layer's configuration
-        #table_data = [["Layer Type", "Parameters", "Output Shape"]]
-        #tot_params = 0
-        #for layer in self.layers:
-            #layer_name = layer.layer_name()
-            #params = layer.parameters_()
-            #out_shape = layer.output_shape()
-            #table_data.append([layer_name, str(params), str(out_shape)])
-            #tot_params += params
+        table_data = [["Layer Type", "Parameters", "Output Shape"]]
+        tot_params = 0
+        for layer in self.layers:
+            layer_name = layer.layer_name()
+            params = layer.parameters_()
+            out_shape = layer.output_shape()
+            table_data.append([layer_name, str(params), str(out_shape)])
+            tot_params += params
+
         # Print network configuration table
-        #print (AsciiTable(table_data).table)
-        #print ("Total Parameters: %d\n" % tot_params)
+        print (AsciiTable(table_data).table)
+        print ("Total Parameters: %d\n" % tot_params)
 
     def predict(self, X):
         """ Use the trained model to predict labels of X """
         return self._forward_pass(X, training=False)
+
+    def eval(self, X_test, y_test):
+        train_err, val_err = self.errors['training'], self.errors["validation"]
+        # Training and validation error plot
+        n = len(train_err)
+        training, = plt.plot(range(n), train_err, label="Training Error")
+        validation, = plt.plot(range(n), val_err, label="Validation Error")
+        plt.legend(handles=[training, validation])
+        plt.title("Error Plot")
+        plt.ylabel('Error')
+        plt.xlabel('Iterations')
+        plt.show()
+
+        _, accuracy = self.test_on_batch(X_test, y_test)
+        print ("Accuracy:", accuracy)
