@@ -6,7 +6,7 @@ from metal.utils import batch_iterator
 from metal.utils.misc import bar_widgets
 import matplotlib.pyplot as plt
 
-class NeuralNetwork():
+class NeuralNetwork(object):
 
     """Neural Network. Deep Learning base model.
     Parameters:
@@ -120,18 +120,3 @@ class NeuralNetwork():
     def predict(self, X):
         """ Use the trained model to predict labels of X """
         return self._forward_pass(X, training=False)
-
-    def eval(self, X_test, y_test):
-        train_err, val_err = self.errors['training'], self.errors["validation"]
-        # Training and validation error plot
-        n = len(train_err)
-        training, = plt.plot(range(n), train_err, label="Training Error")
-        validation, = plt.plot(range(n), val_err, label="Validation Error")
-        plt.legend(handles=[training, validation])
-        plt.title("Error Plot")
-        plt.ylabel('Error')
-        plt.xlabel('Iterations')
-        plt.show()
-
-        _, accuracy = self.test_on_batch(X_test, y_test)
-        print ("Accuracy:", accuracy)

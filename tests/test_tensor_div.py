@@ -1,5 +1,4 @@
 import unittest
-import pytest
 from autograd.tensor import Tensor
 import numpy as np
 class TestTensorDiv(unittest.TestCase):

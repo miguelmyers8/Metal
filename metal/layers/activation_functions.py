@@ -22,3 +22,11 @@ class LeakyReLU():
         y1 = (x * (x.data > 0))
         y2 = (x * alpha * (x.data <= 0))
         return y1 + y2
+
+# https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+class Softmax():
+    """docstring for Softmax."""
+    def __call__(self, x):
+        shiftx = x - x.max()
+        exps = shiftx.exp()
+        return exps / exps.sum()

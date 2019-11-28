@@ -47,8 +47,14 @@ class Conv2D(Layer):
         channels = self.input_shape[0]
         limit = 1 / math.sqrt(np.prod(self.filter_shape))
         # create filter
-        self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
-        self.b = Parameter(data = np.zeros((self.n_filters, 1)))
+        # freezing the layer parameter if necessary
+        # grad would be zeros instead of None :bugfix
+        if self.trainable == False:
+            self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)),requires_grad=False)
+            self.b = Parameter(data = np.zeros((self.n_filters, 1)),requires_grad=False)
+        elif self.trainable == True:
+            self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
+            self.b = Parameter(data = np.zeros((self.n_filters, 1)))
         # Weight optimizers
         if optimizer is not None:
             self.w_opt  = copy.copy(optimizer)
@@ -60,10 +66,6 @@ class Conv2D(Layer):
     def forward_pass(self, X, training=True):
         batch_size, channels, height, width = X.shape
         self.INPUT = X
-        # freezing the layer parameter if necessary
-        if self.trainable == False:
-            self.w.requires_grad = False
-            self.b.requires_grad = False
         # Turn image shape into column shape
         # (enables dot product between input and weights)
         self.X_col = IMG2COL(X, self.filter_shape, stride=self.stride, output_shape=self.padding).image_to_column()

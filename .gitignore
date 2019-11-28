@@ -16,7 +16,8 @@ basic-test.ipynb
 /trash
 /board
 /viz
-
+/examples/test.ipynb
+/examples/.ipynb_checkpoints
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

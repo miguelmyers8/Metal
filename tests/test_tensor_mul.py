@@ -1,6 +1,4 @@
 import unittest
-import pytest
-
 import numpy as np
 
 from autograd.tensor import Tensor

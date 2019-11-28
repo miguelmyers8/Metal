@@ -1,6 +1,5 @@
 from metal.layers.dense import Dense
 import unittest
-import pytest
 from autograd.tensor import Tensor
 import numpy as np
 
