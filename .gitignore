@@ -13,6 +13,7 @@ basic-test.ipynb
 /experimental/__pycache__
 /experimental/lib/__pycache__
 /metal.egg-info
+/metal/layers/pooling.py
 /trash
 /board
 /viz

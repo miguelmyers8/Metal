@@ -165,15 +165,10 @@ def make_diagonal(x):
         m[i, i] = x[i]
     return m
 
-#def transform_single_img(img=None,shape=None,blkwhite=False):
-    #my_image = str(img)
-    #if blkwhite:
-        #mode = 'L'
-    #else:
-        #mode = None
-    #parentDirectory = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-    #image_ = Image.open(os.path.join(parentDirectory, 'metal_py/metal/images/', my_image))
-    #new_img = image_.resize((shape[2],shape[3]))
-    #I = np.asarray(new_img)
-    #I = I.reshape(*shape)
-    #return I
+#resize image
+#example: img_tran(X_train,8)
+def img_tran(imgs_in,size):
+    factor = size/imgs_in.shape[1]
+    imgs_out = ndi.zoom(imgs_in, (1, factor, factor, 1), order=2)
+    print(imgs_out.shape)
+    return imgs_out

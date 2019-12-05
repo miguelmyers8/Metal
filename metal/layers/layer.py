@@ -5,16 +5,18 @@ from metal.module import Module
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layers.activation_functions import Sigmoid, ReLU, LeakyReLU, TanH, Softmax
+from metal.layers.activation_functions import Sigmoid, ReLU, LeakyReLU, TanH, Softmax, ReLU_, Softmax_
 
 
 
 activation_functions = {
     'relu': ReLU,
+    'relu_': ReLU_,
     'sigmoid': Sigmoid,
     'leaky_relu': LeakyReLU,
     'tanh': TanH,
-    'softmax':Softmax
+    'softmax':Softmax,
+    'softmax_':Softmax_
 }
 
 class Layer(Module):
@@ -37,7 +39,7 @@ class Layer(Module):
         """ Propogates the signal forward in the network """
         raise NotImplementedError()
 
-    def backward_pass(self):
+    def update_pass(self):
         """ Propogates the accumulated gradient backwards in the network.
         If the has trainable weights then these weights are also tuned in this method.
         As input (accum_grad) it receives the gradient with respect to the output of the layer and
@@ -71,8 +73,9 @@ class Activation(Layer):
         self.layer_input = X
         return self.activation_func(X)
 
-    def backward_pass(self):
-        pass
+    def update_pass(self):
+        for p in self.parameters():
+            p.zero_grad()
 
     def output_shape(self):
         return self.input_shape
