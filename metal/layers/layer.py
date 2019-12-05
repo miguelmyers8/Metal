@@ -5,18 +5,16 @@ from metal.module import Module
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layers.activation_functions import Sigmoid, ReLU, LeakyReLU, TanH, Softmax, ReLU_, Softmax_
+from metal.layers.activation_functions import Sigmoid, ReLU, LeakyReLU, TanH, Softmax
 
 
 
 activation_functions = {
     'relu': ReLU,
-    'relu_': ReLU_,
     'sigmoid': Sigmoid,
     'leaky_relu': LeakyReLU,
     'tanh': TanH,
     'softmax':Softmax,
-    'softmax_':Softmax_
 }
 
 class Layer(Module):

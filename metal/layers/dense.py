@@ -36,8 +36,13 @@ class Dense(Layer):
         np.random.seed(self.seed)
         # Initialize the weights
         limit = 1 / math.sqrt(self.input_shape[0])
-        self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
-        self.b = Parameter(data = np.zeros((1, self.n_units)))
+
+        if self.trainable == False:
+            self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)), requires_grad=False)
+            self.b = Parameter(data = np.zeros((1, self.n_units)),requires_grad=False)
+        elif self.trainable == True:
+            self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
+            self.b = Parameter(data = np.zeros((1, self.n_units)))
         # Weight optimizers
         if optimizer is not None:
             self.w_opt  = copy.copy(optimizer)
@@ -46,16 +51,42 @@ class Dense(Layer):
     def parameters_(self):
         return np.prod(self.W.shape) + np.prod(self.b.shape)
 
-    def forward_pass(self, X, training=True):
-        assert (type(X) == Parameter) or (type(X) == Tensor), f"#{X} need to be Parameter or Tensor"
-        self.layer_input = X
-        # freezing the layer parameter if necessary
-        if self.trainable == False:
-            self.w.requires_grad = False
-            self.b.requires_grad = False
-        return X @ self.w + self.b
+    def forward_pass(self, x, training=True):
+        self.layer_input = x.data
+        self.type = type(x)
+        depends_on: List[Dependency] = []
 
-    def backward_pass(self):
+        data = x.data.dot(self.w.data) + self.b.data
+        requires_grad = x.requires_grad or self.w.requires_grad or self.b.requires_grad
+
+        if requires_grad:
+            if self.w.requires_grad:
+                depends_on.append(Dependency(self.w, self.grad_w_dense))
+            if self.b.requires_grad:
+                depends_on.append(Dependency(self.b, self.grad_b_dense))
+            if x.requires_grad:
+                depends_on.append(Dependency(x, self.grad_a_dense))
+        else:
+            depends_on = []
+        return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
+
+
+    def grad_w_dense(self, accum_grad):
+        # Calculate gradient w.r.t layer weights
+        grad_w = self.layer_input.T.dot(accum_grad)
+        return grad_w
+
+    def grad_b_dense(self, accum_grad):
+        # Calculate gradient w.r.t layer weights
+        grad_w0 = np.sum(accum_grad, axis=0, keepdims=True)
+        return grad_w0
+
+    def grad_a_dense(self, accum_grad):
+        W = self.w.data
+        accum_grad = accum_grad.dot(W.T)
+        return accum_grad
+
+    def update_pass(self):
         # Update the layer weights
         if self.trainable:
             self.w = self.w_opt.update(self.w)

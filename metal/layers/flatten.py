@@ -14,13 +14,24 @@ class Flatten(Layer):
         self.trainable = True
         self.input_shape = input_shape
 
-    def forward_pass(self, X, training=True):
-        self.prev_shape = X.shape
-        return X.reshape((X.shape[0], -1))
+    def forward_pass(self, x_, training=True):
+        self.prev_shape = x_.shape
+        X = x_.data
+        self.type = type(x_)
+        requires_grad = x_.requires_grad
 
-    def backward_pass(self):
-        # has no grad or update
-        pass
+        if requires_grad:
+            depends_on = [Dependency(x_, self.gardflatten)]
+        else:
+            depends_on = []
+        return self.type(data=X.reshape((X.shape[0], -1)),requires_grad=requires_grad,depends_on=depends_on)
+
+    def gardflatten(self, accum_grad):
+        return accum_grad.reshape(self.prev_shape)
+
+    def update_pass(self):
+        for p in self.parameters():
+            p.zero_grad()
 
     def output_shape(self):
         return (np.prod(self.input_shape),)
