@@ -164,11 +164,3 @@ def make_diagonal(x):
     for i in range(len(m[0])):
         m[i, i] = x[i]
     return m
-
-#resize image
-#example: img_tran(X_train,8)
-def img_tran(imgs_in,size):
-    factor = size/imgs_in.shape[1]
-    imgs_out = ndi.zoom(imgs_in, (1, factor, factor, 1), order=2)
-    print(imgs_out.shape)
-    return imgs_out

@@ -14,11 +14,23 @@ basic-test.ipynb
 /experimental/lib/__pycache__
 /metal.egg-info
 /metal/layers/pooling.py
+/tests/.ipynb_checkpoints
 /trash
 /board
 /viz
-/examples/test.ipynb
+/examples/randomdata.ipynb
+/examples/Untitled.ipynb
+/metal/_
+/metal/utils/data_loader/.env
 /examples/.ipynb_checkpoints
+/tests/leakyrelu_test.py
+/tests/layer_Conv2d_test.py
+/tests/layer_dense_test.py
+/data_loader/.env
+/examples/models
+/examples/Untitled1.ipynb
+/examples/Untitled2.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,4 +1,4 @@
-from metal.layers.conv2D_ import Conv2D
+from metal.layers.conv2D import Conv2D
 import unittest
 from autograd.tensor import Tensor
 from autograd.parameter import Parameter
@@ -156,8 +156,8 @@ class TestLayerConv2d(unittest.TestCase):
 
         np.random.seed(4)
         x = np.random.randn(2,3,3,3)
-        _x_ = Tensor(x,True)
-        c3out = c3.forward_pass(_x_)
+        _x_1 = Tensor(x,True)
+        c3out = c3.forward_pass(_x_1)
         c4out = c4.forward_pass(c3out)
 
         assert np.allclose(c3out.data, true_c3out)
@@ -165,8 +165,8 @@ class TestLayerConv2d(unittest.TestCase):
 
         c4out.sum().backward()
 
-        assert np.allclose(c3._x_ .grad.data, true_c3back)
-        assert np.allclose(c4._x_ .grad.data, true_c4back)
+        assert np.allclose(_x_1 .grad.data, true_c3back)
+        assert np.allclose(c3out.grad.data, true_c4back)
         assert np.allclose(c3.w.grad.data, true_c3_wgrad)
         assert np.allclose(c4.w.grad.data, true_c4_wgrad)
         assert np.allclose(c3.b.grad.data, true_c3_bgrad)
