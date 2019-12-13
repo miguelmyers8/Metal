@@ -17,6 +17,7 @@ activation_functions = {
 }
 
 class Layer(Module):
+    __slots__ = ('input_shape')
     """docstring for Layer."""
 
     def set_input_shape(self, shape):
@@ -50,6 +51,7 @@ class Layer(Module):
 
 
 class Activation(Layer):
+    __slots__=('activation_name','activation_func','trainable','layer_input')
     """A layer that applies an activation operation to the input.
 
     Parameters:

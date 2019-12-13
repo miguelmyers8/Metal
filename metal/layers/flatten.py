@@ -8,6 +8,8 @@ import copy
 from metal.layers.layer import Layer
 
 class Flatten(Layer):
+    __slots__ =( 'prev_shape', 'trainable','type' )
+
     """ Turns a multidimensional matrix into two-dimensional """
     def __init__(self, input_shape=None):
         self.prev_shape = None

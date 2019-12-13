@@ -7,6 +7,7 @@ import numpy as np
 from autograd.tensor import Tensor
 
 class StochasticGradientDescent():
+    __slots__ = ('learning_rate','momentum','w_updt')
     def __init__(self, learning_rate=0.01, momentum=0):
         self.learning_rate = learning_rate
         self.momentum = momentum
@@ -22,6 +23,7 @@ class StochasticGradientDescent():
         return w - self.learning_rate * self.w_updt
 
 class Adam():
+    __slots__ = ('learning_rate','eps','m','v','b1','b2','w_updt')
     def __init__(self, learning_rate=0.001, b1=0.9, b2=0.999):
         self.learning_rate = learning_rate
         self.eps = 1e-8
@@ -38,7 +40,7 @@ class Adam():
             self.v = np.zeros(np.shape(w.grad.data))
 
         self.m = w.grad * (1 - self.b1) + self.b1 * self.m
-        self.v = (w.grad * w.grad) * (1 - self.b2) + self.b2 * self.v  
+        self.v = (w.grad * w.grad) * (1 - self.b2) + self.b2 * self.v
 
         m_hat = self.m / (1 - self.b1)
         v_hat = self.v / (1 - self.b2)

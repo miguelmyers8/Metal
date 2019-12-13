@@ -15,6 +15,7 @@ class Loss(object):
         return 0
 
 class SquareLoss(Loss):
+    __slots__ = ('y','p','type')
     def __init__(self,y=None,p=None):
         self.y = y
         self.p = p
@@ -40,6 +41,7 @@ class SquareLoss(Loss):
         return -(self.y - self.p)
 
 class CrossEntropy(Loss):
+    __slots__ = ('y','p','type')
     def __init__(self,y=None,p=None):
         self.y = y
         self.p = p

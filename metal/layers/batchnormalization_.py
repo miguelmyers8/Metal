@@ -9,7 +9,9 @@ from metal.layers.layer import Layer
 
 
 class BatchNormalization(Layer):
-    """Batch normalization.
+    __slots__ = ('momentum','trainable','eps','running_mean','running_var','gamma','beta','gamma_opt','beta_opt','type','running_mean','running_var','X_centered','stddev_inv')
+    """
+    Batch normalization.
     """
     def __init__(self, momentum=0.99):
         self.momentum = momentum
@@ -31,7 +33,7 @@ class BatchNormalization(Layer):
         # Initialize running mean and variance if first run
         X = x.data
         self.type = type(x)
-        requires_grad = x.requires_grad or self.w.requires_grad or self.b.requires_grad
+        requires_grad = x.requires_grad or self.gamma.requires_grad or self.beta.requires_grad
         depends_on: List[Dependency] = []
 
         if self.running_mean is None:

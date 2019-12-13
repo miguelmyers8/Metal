@@ -6,6 +6,7 @@ from autograd.dependency import Dependency
 # Reference: https://en.wikipedia.org/wiki/Activation_function
 
 class Sigmoid(object):
+    __slots__ = ('TYPE','data')
     """docstring for Sigmoid."""
 
     def __call__(self, x):
@@ -23,6 +24,7 @@ class Sigmoid(object):
 
 
 class TanH(object):
+    __slots__ = ('TYPE','data')
     """docstring for TanH."""
 
     def __call__(self, x):
@@ -41,6 +43,8 @@ class TanH(object):
 
 
 class ReLU(object):
+    __slots__ = ('type','x')
+
     """docstring for ReLU."""
 
     def __call__(self,x):
@@ -60,11 +64,13 @@ class ReLU(object):
 
 
 class Softmax(object):
+    __slots__ = ('TYPE','x')
+
     """docstring for Softmax."""
 
     def __call__(self, x):
         self.x = x.data
-        self.type = type(x)
+        self.TYPE = type(x)
         requires_grad = x.requires_grad
 
         e_x = np.exp(self.x - np.max(self.x, axis=-1, keepdims=True))
@@ -74,7 +80,7 @@ class Softmax(object):
             depends_on = [Dependency(x, self.grad_softmax)]
         else:
             depends_on = []
-        return self.type(data=e_x,requires_grad=requires_grad,depends_on=depends_on)
+        return self.TYPE(data=e_x,requires_grad=requires_grad,depends_on=depends_on)
 
     def grad_softmax(self, grad):
         e_x = np.exp(self.x - np.max(self.x, axis=-1, keepdims=True))

@@ -22,6 +22,7 @@ basic-test.ipynb
 /examples/Untitled.ipynb
 /metal/_
 /metal/utils/data_loader/.env
+/metal/data_loader/.env
 /examples/.ipynb_checkpoints
 /tests/leakyrelu_test.py
 /tests/layer_Conv2d_test.py

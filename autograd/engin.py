@@ -1,5 +1,6 @@
 
 class autograd(object):
+    __slots__ = ('type','t')
     """docstring for autograd."""
 
     def __init__(self, t):

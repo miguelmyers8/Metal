@@ -7,7 +7,7 @@ from metal.utils.misc import bar_widgets
 import matplotlib.pyplot as plt
 
 class NeuralNetwork(object):
-
+    __slots__ = ('optimizer','layers','errors','loss_function','progressbar','val_set','trainable')
     """Neural Network. Deep Learning base model.
     Parameters:
     -----------

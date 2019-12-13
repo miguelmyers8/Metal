@@ -7,6 +7,8 @@ import copy
 from metal.layers.layer import Layer
 
 class Conv2D(Layer):
+    __slots__ =('n_filters','filter_shape','padding','stride','trainable','seed','w','b','w_opt','b_opt','type','layer_input','X_col','W_col')
+
     """A 2D Convolution Layer.
     Parameters:
     -----------
@@ -56,7 +58,7 @@ class Conv2D(Layer):
         return np.prod(self.w.shape) + np.prod(self.b.shape)
 
     def forward_pass(self, x, training=True):
-        
+
         X = x.data
         self.type = type(x)
         requires_grad = x.requires_grad or self.w.requires_grad or self.b.requires_grad

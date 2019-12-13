@@ -8,6 +8,8 @@ from metal.layers.layer import Layer
 
 
 class Dropout(Layer):
+    __slots__ =( 'p', '_mask','n_units', 'pass_through','trainable','type' )
+
     """A layer that randomly sets a fraction p of the output units of the previous layer
     to zero.
     Parameters:
@@ -40,7 +42,7 @@ class Dropout(Layer):
 
     def grad_dropout(self, accum_grad):
         return accum_grad * self._mask
-        
+
     def update_pass(self):
         # clear the gradients
         for p in self.parameters():

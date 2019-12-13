@@ -8,6 +8,7 @@ import copy
 from metal.layers.layer import Layer
 
 class Dense(Layer):
+    __slots__ =( 'layer_input','n_units','trainable', 'w','b', 'seed','type' )
     """A fully-connected NN layer.
     Parameters:
     -----------

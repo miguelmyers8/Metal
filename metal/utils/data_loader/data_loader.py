@@ -1,22 +1,30 @@
 import boto3
 from botocore.exceptions import NoCredentialsError
-from metal.utils.data_loader.setting import AWSAccessKeyId, AWSSecretKey, region
 import sys
 from google_images_download import google_images_download
 import os
 import shutil
 from metal.utils.production_util import create_training_data as create_training_data_
+from dotenv import load_dotenv
+import os
+from os.path import join, dirname
 
 response = google_images_download.googleimagesdownload()
 
 class Data_loader(object):
     """docstring for data_loader."""
 
-    def __init__(self):
+    def __init__(self, path=None):
         super(Data_loader, self).__init__()
-        self.output_directory = "../../downloads/"
+        self.output_directory = path
 
-    def init_s3(self):
+    def init_s3(self, env_path=None):
+
+        load_dotenv(env_path)
+        AWSAccessKeyId = os.getenv("AWSAccessKeyId")
+        AWSSecretKey = os.getenv("AWSSecretKey")
+        region = os.getenv("region")
+
         self.s3 = boto3.client('s3', aws_access_key_id=AWSAccessKeyId,
                           aws_secret_access_key=AWSSecretKey)
 

@@ -17,7 +17,7 @@ requires = [
 
 setup(
     name='fullmetal',
-    version='0',
+    version='0.9',
     author='Miguel Myers',
     packages=find_packages(exclude=("tests",)),
     install_requires=requires,
