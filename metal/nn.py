@@ -62,9 +62,9 @@ class NeuralNetwork(object):
         y_pred = self._forward_pass(X)
         loss = self.loss_function(y, y_pred).loss()
         acc = self.loss_function(y, y_pred).acc()
-        # Calculate the gradient of the loss function wrt y_pred
+        #Calculate the gradient of the loss function wrt y_pred
         loss.sum().backward()
-        # Backpropagate. Update weights
+        #Update weights
         self._update_pass()
 
         return loss.data, acc.data

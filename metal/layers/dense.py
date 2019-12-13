@@ -93,9 +93,7 @@ class Dense(Layer):
             self.w = self.w_opt.update(self.w)
             self.b = self.b_opt.update(self.b)
         # clear the gradients
-        for p in self.parameters():
-            p.zero_grad()
-            p.depends_on = []
+        self.zero_grad()
 
     def output_shape(self):
         return (self.n_units, )

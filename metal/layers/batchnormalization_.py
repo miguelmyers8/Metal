@@ -99,9 +99,7 @@ class BatchNormalization(Layer):
             self.gamma = self.gamma_opt.update(self.gamma)
             self.beta = self.beta_opt.update(self.beta)
         # clear the gradients
-        for p in self.parameters():
-            p.zero_grad()
-            p.depends_on = []
+        self.zero_grad()
 
     def output_shape(self):
         return self.input_shape

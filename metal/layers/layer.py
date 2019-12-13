@@ -73,9 +73,7 @@ class Activation(Layer):
         return self.activation_func(X)
 
     def update_pass(self):
-        for p in self.parameters():
-            p.zero_grad()
-            p.depends_on = []
+        self.zero_grad()
 
     def output_shape(self):
         return self.input_shape
