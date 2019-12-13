@@ -47,6 +47,7 @@ class Dropout(Layer):
         # clear the gradients
         for p in self.parameters():
             p.zero_grad()
+            p.depends_on = []
 
     def output_shape(self):
         return self.input_shape

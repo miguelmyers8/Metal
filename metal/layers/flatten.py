@@ -34,6 +34,7 @@ class Flatten(Layer):
     def update_pass(self):
         for p in self.parameters():
             p.zero_grad()
+            p.depends_on = []
 
     def output_shape(self):
         return (np.prod(self.input_shape),)
