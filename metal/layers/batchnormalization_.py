@@ -55,14 +55,16 @@ class BatchNormalization(Layer):
 
         X_norm = self.X_centered * self.stddev_inv
         data = self.gamma.data * X_norm + self.beta.data
-
-        if requires_grad:
-            if self.gamma.requires_grad:
-                depends_on.append(Dependency(self.gamma, self.grad_gamma_batchNorm))
-            if self.beta.requires_grad:
-                depends_on.append(Dependency(self.beta, self.grad_beta_batchNorm))
-            if x.requires_grad:
-                depends_on.append(Dependency(x, self.grad_x_batchNorm))
+        if training:
+            if requires_grad:
+                if self.gamma.requires_grad:
+                    depends_on.append(Dependency(self.gamma, self.grad_gamma_batchNorm))
+                if self.beta.requires_grad:
+                    depends_on.append(Dependency(self.beta, self.grad_beta_batchNorm))
+                if x.requires_grad:
+                    depends_on.append(Dependency(x, self.grad_x_batchNorm))
+            else:
+                depends_on = []
         else:
             depends_on = []
         return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)

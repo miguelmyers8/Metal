@@ -28,7 +28,7 @@ basic-test.ipynb
 /tests/layer_Conv2d_test.py
 /tests/layer_dense_test.py
 /data_loader/.env
-/examples/models
+/examples
 /examples/Untitled1.ipynb
 /examples/Untitled2.ipynb
 

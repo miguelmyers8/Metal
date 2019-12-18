@@ -27,10 +27,11 @@ def load_model(filename):
         layers = dill.load(file)
     return layers
 
-def fetch_img(url,shape):
+def fetch_img(url,shape,invert=False):
     I = Image.open(urllib.request.urlopen(url)).convert('L')
     I = np.asarray(I.resize((shape[-1],shape[-2]), PIL.Image.LANCZOS)).reshape(*shape)
-    I = np.invert(I)
+    if invert:
+        I = np.invert(I)
     I = normalize(I)
     return I
 

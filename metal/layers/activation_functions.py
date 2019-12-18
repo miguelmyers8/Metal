@@ -47,14 +47,17 @@ class ReLU(object):
 
     """docstring for ReLU."""
 
-    def __call__(self,x):
+    def __call__(self,x,training):
         self.x = x.data
         self.type = type(x)
         requires_grad = x.requires_grad
 
         data  = self.x * (self.x > 0)
-        if requires_grad:
-            depends_on = [Dependency(x, self.grad_relu)]
+        if training:
+            if requires_grad:
+                depends_on = [Dependency(x, self.grad_relu)]
+            else:
+                depends_on = []
         else:
             depends_on = []
         return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
@@ -68,16 +71,18 @@ class Softmax(object):
 
     """docstring for Softmax."""
 
-    def __call__(self, x):
+    def __call__(self, x, training):
         self.x = x.data
         self.TYPE = type(x)
         requires_grad = x.requires_grad
 
         e_x = np.exp(self.x - np.max(self.x, axis=-1, keepdims=True))
         e_x = e_x / np.sum(e_x, axis=-1, keepdims=True)
-
-        if requires_grad:
-            depends_on = [Dependency(x, self.grad_softmax)]
+        if training:
+            if requires_grad:
+                depends_on = [Dependency(x, self.grad_softmax)]
+            else:
+                depends_on = []
         else:
             depends_on = []
         return self.TYPE(data=e_x,requires_grad=requires_grad,depends_on=depends_on)

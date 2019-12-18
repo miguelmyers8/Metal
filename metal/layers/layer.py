@@ -68,9 +68,8 @@ class Activation(Layer):
     def layer_name(self):
         return "Activation (%s)" % (self.activation_func.__class__.__name__)
 
-    def forward_pass(self, X, training=True):
-        self.layer_input = X
-        return self.activation_func(X)
+    def forward_pass(self, X, training):
+        return self.activation_func(X, training)
 
     def update_pass(self):
         self.zero_grad()

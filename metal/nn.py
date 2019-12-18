@@ -51,16 +51,18 @@ class NeuralNetwork(object):
 
     def test_on_batch(self, X, y):
         """ Evaluates the model over a single batch of samples """
+        self.set_trainable(False)
         y_pred = self._forward_pass(X, training=False)
-        loss = self.loss_function(y, y_pred).loss()
+        loss = self.loss_function(y, y_pred).loss(training=False)
         acc = self.loss_function(y, y_pred).acc()
 
         return loss, acc
 
     def train_on_batch(self, X, y):
         """ Single gradient update over one batch of samples """
-        y_pred = self._forward_pass(X)
-        loss = self.loss_function(y, y_pred).loss()
+        self.set_trainable(True)
+        y_pred = self._forward_pass(X, training=True)
+        loss = self.loss_function(y, y_pred).loss(training=True)
         acc = self.loss_function(y, y_pred).acc()
         #Calculate the gradient of the loss function wrt y_pred
         loss.sum().backward()
@@ -86,7 +88,7 @@ class NeuralNetwork(object):
 
         return self.errors["training"], self.errors["validation"]
 
-    def _forward_pass(self, X, training=True):
+    def _forward_pass(self, X, training):
         """ Calculate the output of the NN """
         layer_output = X
         for layer in self.layers:

@@ -59,16 +59,16 @@ class Dense(Layer):
 
         data = x.data.dot(self.w.data) + self.b.data
         requires_grad = x.requires_grad or self.w.requires_grad or self.b.requires_grad
-
-        if requires_grad:
-            if self.w.requires_grad:
-                depends_on.append(Dependency(self.w, self.grad_w_dense))
-            if self.b.requires_grad:
-                depends_on.append(Dependency(self.b, self.grad_b_dense))
-            if x.requires_grad:
-                depends_on.append(Dependency(x, self.grad_a_dense))
-        else:
-            depends_on = []
+        if training:
+            if requires_grad:
+                if self.w.requires_grad:
+                    depends_on.append(Dependency(self.w, self.grad_w_dense))
+                if self.b.requires_grad:
+                    depends_on.append(Dependency(self.b, self.grad_b_dense))
+                if x.requires_grad:
+                    depends_on.append(Dependency(x, self.grad_a_dense))
+            else:
+                depends_on = []
         return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
 
 

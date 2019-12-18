@@ -57,7 +57,7 @@ class Conv2D(Layer):
     def parameters_(self):
         return np.prod(self.w.shape) + np.prod(self.b.shape)
 
-    def forward_pass(self, x, training=True):
+    def forward_pass(self, x, training):
 
         X = x.data
         self.type = type(x)
@@ -76,15 +76,16 @@ class Conv2D(Layer):
         # Reshape into (n_filters, out_height, out_width, batch_size)
         output = output.reshape(self.output_shape() + (batch_size, ))
         # Redistribute axises so that batch size comes first
-        if requires_grad:
-            if self.w.requires_grad:
-                depends_on.append(Dependency(self.w, self.grad_w_conv2D))
-            if self.b.requires_grad:
-                depends_on.append(Dependency(self.b, self.grad_b_conv2D))
-            if x.requires_grad:
-                depends_on.append(Dependency(x, self.grad_a_conv2D))
-        else:
-            depends_on = []
+        if training:
+            if requires_grad:
+                if self.w.requires_grad:
+                    depends_on.append(Dependency(self.w, self.grad_w_conv2D))
+                if self.b.requires_grad:
+                    depends_on.append(Dependency(self.b, self.grad_b_conv2D))
+                if x.requires_grad:
+                    depends_on.append(Dependency(x, self.grad_a_conv2D))
+            else:
+                depends_on = []
         return self.type(data=output.transpose(3,0,1,2),requires_grad=requires_grad,depends_on=depends_on)
 
 

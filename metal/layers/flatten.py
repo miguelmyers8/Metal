@@ -21,9 +21,11 @@ class Flatten(Layer):
         X = x_.data
         self.type = type(x_)
         requires_grad = x_.requires_grad
-
-        if requires_grad:
-            depends_on = [Dependency(x_, self.gardflatten)]
+        if training:
+            if requires_grad:
+                depends_on = [Dependency(x_, self.gardflatten)]
+            else:
+                depends_on = []
         else:
             depends_on = []
         return self.type(data=X.reshape((X.shape[0], -1)),requires_grad=requires_grad,depends_on=depends_on)

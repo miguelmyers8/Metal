@@ -1,6 +1,3 @@
-from __future__ import print_function
-
-from metal.utils.data_loader.data_loader import Data_loader
 from metal.nn import NeuralNetwork
 from metal.utils import train_test_split, to_categorical, normalize
 from metal.utils import get_random_subsets, shuffle_data, Plot
@@ -19,24 +16,26 @@ import h5py
 from metal.layers.batchnormalization_ import BatchNormalization
 from metal.utils.production_util import save_model
 
+from sklearn import datasets
 import matplotlib.pyplot as plt
 import math
 import numpy as np
-da = Data_loader()
-x,y = da.create_training_data(classes=['dogs','cats'])
+import time
+from memory_profiler import profile
+
+
 optimizer = Adam()
-X = x
-print(y.count(1)," ",y.count(0))
-y = np.array(y)
+data = datasets.load_digits()
+X = data.data
+y = data.target
 loss = CrossEntropy
-print(X.shape,"  ",y.shape)
 # Covnet to  one-hot encoding
 y = to_categorical(y.astype("int"))
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.4, seed = 1)
 
-X_train = X_train.reshape((-1,1,50,50))/255.0
-X_test = X_test.reshape((-1,1,50,50))/255.0
+X_train = X_train.reshape((-1,1,8,8))
+X_test = X_test.reshape((-1,1,8,8))
 
 X_train = Parameter(X_train, requires_grad=False)
 X_test = Parameter(X_test, requires_grad=False)
@@ -45,16 +44,33 @@ y_test = Parameter(y_test, requires_grad=False)
 
 covnet = ConvNet(optimizer=optimizer, loss=loss,  validation_data=(X_test,y_test))
 
-covnet.add(Conv2D(n_filters=16, filter_shape=(3,3), stride=1, input_shape=(1,50,50), padding='same', seed=1))
+
+covnet.add(Conv2D(n_filters=50, filter_shape=(3,3), stride=1, input_shape=(1,8,8), padding='same', seed=1))
 covnet.add(Activation('relu'))
 covnet.add(BatchNormalization())
-covnet.add(Conv2D(n_filters=16, filter_shape=(3,3), stride=1, padding='same', seed=2))
+covnet.add(Conv2D(n_filters=50, filter_shape=(3,3), stride=1, padding='same', seed=5))
+covnet.add(Activation('relu'))
+covnet.add(BatchNormalization())
+covnet.add(Conv2D(n_filters=50, filter_shape=(3,3), stride=1, padding='same', seed=2))
 covnet.add(Flatten())
 covnet.add(BatchNormalization())
 covnet.add(Dense(256, seed=4))
 covnet.add(Activation('relu'))
-covnet.add(Dense(2,seed=3))
+covnet.add(Dense(10,seed=3))
 covnet.add(Activation('softmax'))
 
-train_err, val_err = covnet.fit(X_train, y_train, n_epochs=10, batch_size=64)
-covnet.eval(X_test, y_test)
+#covnet.eval(X_test, y_test)
+#covnet.eval(X_test, y_test)
+# python3 -m memory_profiler test.py with @profile
+#
+# mprof run --include-children python3 test.py && mprof plot --output memory-profile.png
+
+def main():
+    train_err, val_err = covnet.fit(X_train, y_train, n_epochs=10, batch_size=64)
+    #covnet.eval(X_test, y_test)
+
+
+
+    print("end")
+if __name__ == "__main__":
+    main()

@@ -52,13 +52,16 @@ class CrossEntropy(Loss):
         self.p = p
         self.type = type(p)
 
-    def loss(self):
+    def loss(self, training):
         # Avoid division by zero
         p = np.clip(self.p.data.astype('float64'), 1e-15, 1 - 1e-15)
         data = np.mean(- self.y.data.astype('float64') * np.log(p) - (1 - self.y.data.astype('float64')) * np.log(1 - p))
         requires_grad = self.p.requires_grad
-        if requires_grad:
-            depends_on = [Dependency(self.p, self.gradient_CrossEntropy)]
+        if training:
+            if requires_grad:
+                depends_on = [Dependency(self.p, self.gradient_CrossEntropy)]
+            else:
+                depends_on = []
         else:
             depends_on = []
         return  self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
