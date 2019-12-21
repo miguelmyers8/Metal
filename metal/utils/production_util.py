@@ -10,6 +10,7 @@ from autograd.parameter import Parameter
 import random
 import cv2
 import os
+import scipy.ndimage as ndi
 
 
 print('resource limit ',resource.getrlimit(resource.RLIMIT_STACK))
@@ -56,8 +57,13 @@ def create_training_data(img_size=50, classes=[], data_dir="", color=None):
     #data_dir is path to downloads
     #img_size for WxH
 
-    if color == None:
+    if color == 'gray':
         color = cv2.IMREAD_GRAYSCALE
+    elif color == 'gray_to_rgb':
+        color = cv.CV_GRAY2RGB
+    elif color == None:
+        color = cv2.IMREAD_COLOR
+    
         # TODO: add more opitons
 
     training_data = []

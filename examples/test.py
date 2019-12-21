@@ -33,7 +33,7 @@ loss = CrossEntropy
 y = to_categorical(y.astype("int"))
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.4, seed = 1)
-
+print(X_train.shape)
 X_train = X_train.reshape((-1,1,8,8))
 X_test = X_test.reshape((-1,1,8,8))
 
@@ -41,11 +41,13 @@ X_train = Parameter(X_train, requires_grad=False)
 X_test = Parameter(X_test, requires_grad=False)
 y_train = Parameter(y_train, requires_grad=False)
 y_test = Parameter(y_test, requires_grad=False)
+print(X_train.shape)
 
-covnet = ConvNet(optimizer=optimizer, loss=loss,  validation_data=(X_test,y_test))
+X_train = Parameter(np.random.randn(1,3,256,256))
+covnet = ConvNet(optimizer=optimizer, loss=loss)
 
 
-covnet.add(Conv2D(n_filters=50, filter_shape=(3,3), stride=1, input_shape=(1,8,8), padding='same', seed=1))
+covnet.add(Conv2D(n_filters=64, filter_shape=(11,11), stride=4, input_shape=(3,256,256), padding='valid', seed=1))
 covnet.add(Activation('relu'))
 covnet.add(BatchNormalization())
 covnet.add(Conv2D(n_filters=50, filter_shape=(3,3), stride=1, padding='same', seed=5))
