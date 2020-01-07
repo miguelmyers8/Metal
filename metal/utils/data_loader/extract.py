@@ -22,7 +22,7 @@ class Detach_params(object):
         np.save(path+name, self.modelparams)
 
     def load_params(self, path, name):
-        return np.load(path+name)
+        return np.load(path+name,allow_pickle=True)
 
     def detach_features(self):
         for name, param in self.model.features.named_parameters():

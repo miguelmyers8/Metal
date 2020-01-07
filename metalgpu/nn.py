@@ -1,11 +1,11 @@
 from __future__ import print_function, division
 from terminaltables import AsciiTable
-import numpy as np
+import cupy as cp
 import progressbar
-from metal.utils import batch_iterator
-from metal.utils.misc import bar_widgets
+from metalgpu.utils import batch_iterator
+from metalgpu.utils.misc import bar_widgets
 import matplotlib.pyplot as plt
-
+import numpy as np
 class NeuralNetwork(object):
     __slots__ = ('optimizer','layers','errors','loss_function','progressbar','val_set','trainable')
     """Neural Network. Deep Learning base model.
@@ -86,8 +86,9 @@ class NeuralNetwork(object):
             batch_error = []
             for X_batch, y_batch in batch_iterator(X, y, batch_size=batch_size):
                 loss, acc = self.train_on_batch(X_batch, y_batch)
-                batch_error.append(loss)
+                batch_error.append(cp.asnumpy(loss))
                 batch_acc.append(acc)
+                
 
 
             self.errors["training"].append(np.mean(batch_error))
@@ -97,6 +98,7 @@ class NeuralNetwork(object):
                 val_loss, val_acc = self.test_on_batch(self.val_set["X"], self.val_set["y"])
                 self.errors["validation"].append(val_loss.data)
                 self.acc["validation"].append(val_acc.data)
+
 
         return self.errors["training"], self.errors["validation"]
 
@@ -116,7 +118,7 @@ class NeuralNetwork(object):
         # Print model name
         print (AsciiTable([[name]]).table)
         # Network input shape (first layer's input shape)
-        print ("Input Shape: %s" % str(self.layers[0].input_shape))
+        print ("input Shape: %s" % str(self.layers[0].input_shape))
         # Iterate through network and get each layer's configuration
         table_data = [["Layer Type", "Parameters", "Output Shape"]]
         tot_params = 0

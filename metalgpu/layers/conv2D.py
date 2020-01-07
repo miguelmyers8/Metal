@@ -1,11 +1,12 @@
-import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from autograd.dependency import Dependency
+import cupy as cp
+from autogradgpu.tensor import Tensor
+from autogradgpu.parameter import Parameter
+from autogradgpu.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
-from metal.utils.layer_data_manipulations import *
+from metalgpu.layers.layer import Layer
+from metalgpu.utils.layer_data_manipulations import *
+import numpy as np
 
 class Conv2D(Layer):
     __slots__ =('n_filters','filter_shape','padding','stride','trainable','seed','w','b','w_opt','b_opt','type','layer_input','X_col','W_col')
@@ -56,7 +57,7 @@ class Conv2D(Layer):
             self.b_opt = copy.copy(optimizer)
 
     def initialize(self, optimizer=None):
-        np.random.seed(self.seed)
+        cp.random.seed(self.seed)
         # Initialize the weights
         filter_height, filter_width = self.filter_shape
         channels = self.input_shape[0]
@@ -64,11 +65,11 @@ class Conv2D(Layer):
         # create filter
         # grad would be zeros instead of None :bugfix
         if self.trainable == False:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)),requires_grad=False)
-            self.b = Parameter(data = np.zeros((self.n_filters, 1)),requires_grad=False)
+            self.w = Parameter(data = cp.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)),requires_grad=False)
+            self.b = Parameter(data = cp.zeros((self.n_filters, 1)),requires_grad=False)
         elif self.trainable == True:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
-            self.b = Parameter(data = np.zeros((self.n_filters, 1)))
+            self.w = Parameter(data = cp.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
+            self.b = Parameter(data = cp.zeros((self.n_filters, 1)))
         # Weight optimizers
         if optimizer is not None:
             self.w_opt  = copy.copy(optimizer)
@@ -122,7 +123,7 @@ class Conv2D(Layer):
         # Reshape accumulated gradient into column shape
         accum_grad = accum_grad.transpose(1, 2, 3, 0).reshape(self.n_filters, -1)
         # The gradient with respect to bias terms is the sum similarly to in Dense layer
-        grad_w0 = np.sum(accum_grad, axis=1, keepdims=True)
+        grad_w0 = cp.sum(accum_grad, axis=1, keepdims=True)
 
         return grad_w0
 
@@ -154,6 +155,8 @@ class Conv2D(Layer):
     def output_shape(self):
         channels, height, width = self.input_shape
         pad_h, pad_w = determine_padding(self.filter_shape, output_shape=self.padding)
-        output_height = (height + np.sum(pad_h) - self.filter_shape[0]) / self.stride + 1
-        output_width = (width + np.sum(pad_w) - self.filter_shape[1]) / self.stride + 1
+        pad_h = np.sum(pad_h)
+        pad_w = np.sum(pad_w)
+        output_height = (height + pad_h - self.filter_shape[0]) / self.stride + 1
+        output_width = (width + pad_w - self.filter_shape[1]) / self.stride + 1
         return self.n_filters, int(output_height), int(output_width)

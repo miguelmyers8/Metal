@@ -1,6 +1,6 @@
-import numpy as np
-from autograd.tensor import Tensor
-from autograd.dependency import Dependency
+import cupy as cp
+from autogradgpu.tensor import Tensor
+from autogradgpu.dependency import Dependency
 
 # Collection of activation functions
 # Reference: https://en.wikipedia.org/wiki/Activation_function
@@ -12,7 +12,7 @@ class Sigmoid(object):
     def __call__(self, x, training):
         self.TYPE = type(x)
         requires_grad = x.requires_grad
-        self.data =  1 / (1 + np.exp(-x.data))
+        self.data =  1 / (1 + cp.exp(-x.data))
         if training:
             if requires_grad:
                 depends_on = [Dependency(x, self.grad_sigmoid)]
@@ -33,7 +33,7 @@ class TanH(object):
     def __call__(self, x):
         self.TYPE = type(x)
         requires_grad = x.requires_grad
-        self.data = np.tanh(x.data)
+        self.data = cp.tanh(x.data)
         if requires_grad:
             depends_on = [Dependency(x, self.grad_tanh)]
         else:
@@ -79,8 +79,8 @@ class Softmax(object):
         self.TYPE = type(x)
         requires_grad = x.requires_grad
 
-        e_x = np.exp(self.x - np.max(self.x, axis=-1, keepdims=True))
-        e_x = e_x / np.sum(e_x, axis=-1, keepdims=True)
+        e_x = cp.exp(self.x - cp.max(self.x, axis=-1, keepdims=True))
+        e_x = e_x / cp.sum(e_x, axis=-1, keepdims=True)
         if training:
             if requires_grad:
                 depends_on = [Dependency(x, self.grad_softmax)]
@@ -91,8 +91,8 @@ class Softmax(object):
         return self.TYPE(data=e_x,requires_grad=requires_grad,depends_on=depends_on)
 
     def grad_softmax(self, grad):
-        e_x = np.exp(self.x - np.max(self.x, axis=-1, keepdims=True))
-        e_x = e_x / np.sum(e_x, axis=-1, keepdims=True)
+        e_x = cp.exp(self.x - cp.max(self.x, axis=-1, keepdims=True))
+        e_x = e_x / cp.sum(e_x, axis=-1, keepdims=True)
         return grad * (e_x * (1 - e_x))
 
 
@@ -115,14 +115,14 @@ class ReLU_():
             depends_on = [Dependency(x_, self.grad_relu)]
         else:
             depends_on = []
-        return self.type(data=np.where(x >= 0, x, 0),requires_grad=requires_grad,depends_on=depends_on)
+        return self.type(data=cp.where(x >= 0, x, 0),requires_grad=requires_grad,depends_on=depends_on)
 
     def grad_relu(self, x):
-        print(np.where(x >= 0, 1, 0))
-        return np.where(x >= 0, 1, 0)
+        print(cp.where(x >= 0, 1, 0))
+        return cp.where(x >= 0, 1, 0)
 """
 
-# https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+# https://eli.thegreecplace.net/2016/the-softmax-function-and-its-derivative/
 """
 class Softmax_():
     #docstring for Softmax.

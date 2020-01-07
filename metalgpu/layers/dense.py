@@ -1,12 +1,12 @@
-import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from metal.module import Module
-from autograd.dependency import Dependency
+import cupy as cp
+from autogradgpu.tensor import Tensor
+from autogradgpu.parameter import Parameter
+from metalgpu.module import Module
+from autogradgpu.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
-from metal.utils.layer_data_manipulations import *
+from metalgpu.layers.layer import Layer
+from metalgpu.utils.layer_data_manipulations import *
 
 class Dense(Layer):
     __slots__ =( 'layer_input','n_units','trainable', 'w','b', 'seed','type' )
@@ -20,9 +20,9 @@ class Dense(Layer):
         the number of features of the input. Must be specified if it is the first layer in
         the network.
     example shape:
-        w = np.random.randn(6,5)
-        i = np.random.randn(2,6)
-        np.dot(i,w) + np.random.randn(1,5)
+        w = cp.random.randn(6,5)
+        i = cp.random.randn(2,6)
+        cp.dot(i,w) + cp.random.randn(1,5)
     """
 
     def __init__(self, n_units, input_shape=None, seed=None):
@@ -53,16 +53,16 @@ class Dense(Layer):
             self.b_opt = copy.copy(optimizer)
 
     def initialize(self, optimizer=None):
-        np.random.seed(self.seed)
+        cp.random.seed(self.seed)
         # Initialize the weights
         limit = 1 / math.sqrt(self.input_shape[0])
 
         if self.trainable == False:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)), requires_grad=False)
-            self.b = Parameter(data = np.zeros((1, self.n_units)),requires_grad=False)
+            self.w = Parameter(data = cp.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)), requires_grad=False)
+            self.b = Parameter(data = cp.zeros((1, self.n_units)),requires_grad=False)
         elif self.trainable == True:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
-            self.b = Parameter(data = np.zeros((1, self.n_units)))
+            self.w = Parameter(data = cp.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
+            self.b = Parameter(data = cp.zeros((1, self.n_units)))
         # Weight optimizers
         if optimizer is not None:
             self.w_opt  = copy.copy(optimizer)
@@ -98,7 +98,7 @@ class Dense(Layer):
 
     def grad_b_dense(self, accum_grad):
         # Calculate gradient w.r.t layer weights
-        grad_w0 = np.sum(accum_grad, axis=0, keepdims=True)
+        grad_w0 = cp.sum(accum_grad, axis=0, keepdims=True)
         return grad_w0
 
     def grad_a_dense(self, accum_grad):

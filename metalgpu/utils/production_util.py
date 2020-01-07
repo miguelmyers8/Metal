@@ -3,15 +3,15 @@ import sys
 import urllib.request
 import PIL
 from PIL import Image
-from metal.utils.data_manipulation import normalize
+from metalgpu.utils.data_manipulation import normalize
 import dill
-from autograd.parameter import Parameter
+from autogradgpu.parameter import Parameter
 import random
 import cv2
 import os
 import scipy.ndimage as ndi
 
-import numpy as np
+import cupy as cp
 import scipy
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -36,9 +36,9 @@ def load_model(filename):
 
 def fetch_img(url,shape,invert=False):
     I = Image.open(urllib.request.urlopen(url)).convert('L')
-    I = np.asarray(I.resize((shape[-1],shape[-2]), PIL.Image.LANCZOS)).reshape(*shape)
+    I = cp.asarray(I.resize((shape[-1],shape[-2]), PIL.Image.LANCZOS)).reshape(*shape)
     if invert:
-        I = np.invert(I)
+        I = cp.invert(I)
     I = normalize(I)
     return I
 
@@ -89,7 +89,7 @@ def create_training_data(img_size=50, classes=[], data_dir="", color=None):
     for img, lab in training_data:
         imgs.append(img)
         labs.append(lab)
-    #imgs = np.array(imgs).reshape(-1, img_size,img_size)
+    #imgs = cp.array(imgs).reshape(-1, img_size,img_size)
     self.imgs = imgs
     self.labels = labels
     return self.imgs, self.labs

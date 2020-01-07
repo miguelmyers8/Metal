@@ -1,11 +1,11 @@
-import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from metal.module import Module
-from autograd.dependency import Dependency
+import cupy as cp
+from autogradgpu.tensor import Tensor
+from autogradgpu.parameter import Parameter
+from metalgpu.module import Module
+from autogradgpu.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
+from metalgpu.layers.layer import Layer
 
 
 class BatchNormalization(Layer):
@@ -23,8 +23,8 @@ class BatchNormalization(Layer):
 
     def initialize(self, optimizer):
         # Initialize the parameters
-        self.gamma = Parameter(np.ones(self.input_shape))
-        self.beta = Parameter(np.zeros(self.input_shape))
+        self.gamma = Parameter(cp.ones(self.input_shape))
+        self.beta = Parameter(cp.zeros(self.input_shape))
         # parameter optimizers
         self.gamma_opt  = copy.copy(optimizer)
         self.beta_opt = copy.copy(optimizer)
@@ -38,12 +38,12 @@ class BatchNormalization(Layer):
         depends_on: List[Dependency] = []
 
         if self.running_mean is None:
-            self.running_mean = np.mean(X, axis=0)
-            self.running_var = np.var(X, axis=0)
+            self.running_mean = cp.mean(X, axis=0)
+            self.running_var = cp.var(X, axis=0)
 
         if training and self.trainable:
-            mean = np.mean(X, axis=0)
-            var = np.var(X, axis=0)
+            mean = cp.mean(X, axis=0)
+            var = cp.var(X, axis=0)
             self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * mean
             self.running_var = self.momentum * self.running_var + (1 - self.momentum) * var
         else:
@@ -52,7 +52,7 @@ class BatchNormalization(Layer):
 
         # Statistics saved for backward pass
         self.X_centered = X - mean
-        self.stddev_inv = 1 / np.sqrt(var + self.eps)
+        self.stddev_inv = 1 / cp.sqrt(var + self.eps)
 
         X_norm = self.X_centered * self.stddev_inv
         data = self.gamma.data * X_norm + self.beta.data
@@ -74,13 +74,13 @@ class BatchNormalization(Layer):
     def grad_gamma_batchNorm(self, grad):
         # Save parameters used during the forward pass
         X_norm = self.X_centered * self.stddev_inv
-        grad_gamma = np.sum(grad * X_norm, axis=0)
+        grad_gamma = cp.sum(grad * X_norm, axis=0)
         return grad_gamma
 
 
     def grad_beta_batchNorm(self, grad):
         # Save parameters used during the forward pass
-        grad_beta = np.sum(grad, axis=0)
+        grad_beta = cp.sum(grad, axis=0)
         return grad_beta
 
     def grad_x_batchNorm(self, grad):
@@ -90,8 +90,8 @@ class BatchNormalization(Layer):
         # The gradient of the loss with respect to the layer inputs (use weights and statistics from forward pass)
         accum_grad = (1 / batch_size) * gamma * self.stddev_inv * (
             batch_size * grad
-            - np.sum(grad, axis=0)
-            - self.X_centered * self.stddev_inv**2 * np.sum(grad * self.X_centered, axis=0)
+            - cp.sum(grad, axis=0)
+            - self.X_centered * self.stddev_inv**2 * cp.sum(grad * self.X_centered, axis=0)
             )
 
         return accum_grad

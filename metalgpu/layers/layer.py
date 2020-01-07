@@ -1,12 +1,12 @@
-import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from metal.module import Module
-from autograd.dependency import Dependency
+import cupy as cp
+from autogradgpu.tensor import Tensor
+from autogradgpu.parameter import Parameter
+from metalgpu.module import Module
+from autogradgpu.dependency import Dependency
 import math
 import copy
-from metal.layers.activation_functions import Sigmoid, ReLU, TanH, Softmax
-from metal.utils.layer_data_manipulations import *
+from metalgpu.layers.activation_functions import Sigmoid, ReLU, TanH, Softmax
+from metalgpu.utils.layer_data_manipulations import *
 
 
 activation_functions = {

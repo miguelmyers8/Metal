@@ -4,6 +4,5 @@ pip install google_images_download
 pip install boto3
 pip install progressbar
 pip install python-dotenv
-pip install pybind11
 pip install terminaltables
-pip3 install torch torchvision
+pip install torch torchvision
