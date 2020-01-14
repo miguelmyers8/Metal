@@ -1,0 +1,122 @@
+from abc import ABC, abstractmethod
+import numpy as np
+
+
+class ActivationBase(ABC):
+    def __init__(self, **kwargs):
+        super().__init__()
+
+    def __call__(self, z):
+        if z.ndim == 1:
+            z = z.reshape(1, -1)
+        return self.fn(z)
+
+    @abstractmethod
+    def fn(self, z):
+        raise NotImplementedError
+
+    @abstractmethod
+    def grad(self, x, **kwargs):
+        raise NotImplementedError
+
+
+
+class Affine(ActivationBase):
+    def __init__(self, slope=1, intercept=0):
+        """
+        An affine activation function.
+        Parameters
+        ----------
+        slope: float
+            Activation slope. Default is 1.
+        intercept: float
+            Intercept/offset term. Default is 0.
+        """
+        self.slope = slope
+        self.intercept = intercept
+        super().__init__()
+
+    def __str__(self):
+        return "Affine(slope={}, intercept={})".format(self.slope, self.intercept)
+
+    def fn(self, z):
+        """
+        Evaluate the Affine activation on the elements of input `z`.
+        .. math::
+            \\text{Affine}(z_i)  =  \\text{slope} \\times z_i + \\text{intercept}
+        """
+        return self.slope * z + self.intercept
+
+    def grad(self, x):
+        """
+        Evaluate the first derivative of the Affine activation on the elements
+        of input `x`.
+        .. math::
+            \\frac{\partial \\text{Affine}}{\partial x_i}  =  \\text{slope}
+        """
+        return self.slope * np.ones_like(x)
+
+    def grad2(self, x):
+        """
+        Evaluate the second derivative of the Affine activation on the elements
+        of input `x`.
+        .. math::
+            \\frac{\partial^2 \\text{Affine}}{\partial x_i^2}  =  0
+        """
+        return np.zeros_like(x)
+
+
+class ReLU(ActivationBase):
+    """
+    A rectified linear activation function.
+    Notes
+    -----
+    "ReLU units can be fragile during training and can "die". For example, a
+    large gradient flowing through a ReLU neuron could cause the weights to
+    update in such a way that the neuron will never activate on any datapoint
+    again. If this happens, then the gradient flowing through the unit will
+    forever be zero from that point on. That is, the ReLU units can
+    irreversibly die during training since they can get knocked off the data
+    manifold.
+    For example, you may find that as much as 40% of your network can be "dead"
+    (i.e. neurons that never activate across the entire training dataset) if
+    the learning rate is set too high. With a proper setting of the learning
+    rate this is less frequently an issue." [*]_
+    References
+    ----------
+    .. [*] Karpathy, A. "CS231n: Convolutional neural networks for visual recognition".
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def __str__(self):
+        return "ReLU"
+
+    def fn(self, z):
+        """
+        Evaulate the ReLU function on the elements of input `z`.
+        .. math::
+            \\text{ReLU}(z_i)
+                &=  z_i \\ \\ \\ \\ &&\\text{if }z_i > 0 \\\\
+                &=  0 \\ \\ \\ \\ &&\\text{otherwise}
+        """
+        return np.clip(z, 0, np.inf)
+
+    def grad(self, x):
+        """
+        Evaulate the first derivative of the ReLU function on the elements of input `x`.
+        .. math::
+            \\frac{\partial \\text{ReLU}}{\partial x_i}
+                &=  1 \\ \\ \\ \\ &&\\text{if }x_i > 0 \\\\
+                &=  0   \\ \\ \\ \\ &&\\text{otherwise}
+        """
+        return (x > 0).astype(int)
+
+    def grad2(self, x):
+        """
+        Evaulate the second derivative of the ReLU function on the elements of input `x`.
+        .. math::
+            \\frac{\partial^2 \\text{ReLU}}{\partial x_i^2}  =  0
+        """
+        return np.zeros_like(x)

@@ -1,118 +1,163 @@
 import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from metal.module import Module
-from autograd.dependency import Dependency
-import math
-import copy
-from metal.layers.layer import Layer
-from metal.utils.layer_data_manipulations import *
 
-class Dense(Layer):
-    __slots__ =( 'layer_input','n_units','trainable', 'w','b', 'seed','type' )
-    """A fully-connected NN layer.
-    Parameters:
-    -----------
-    n_units: int
-        The number of neurons in the layer.
-    input_shape: tuple
-        The expected input shape of the layer. For dense layers a single digit specifying
-        the number of features of the input. Must be specified if it is the first layer in
-        the network.
-    example shape:
-        w = np.random.randn(6,5)
-        i = np.random.randn(2,6)
-        np.dot(i,w) + np.random.randn(1,5)
-    """
+from metal.layers.layer import LayerBase
+from metal.initializers.activation_init import ActivationInitializer, Affine, ReLU
+from metal.initializers.weight_init import WeightInitializer
 
-    def __init__(self, n_units, input_shape=None, seed=None):
-        self.layer_input = None
-        self.input_shape = input_shape
-        self.n_units = n_units
-        self.trainable = True
-        self.w = None
-        self.b = None
-        self.seed = seed
-        self.load_params_ = False
+class Dense(LayerBase):
+    def __init__(self, n_out, act_fn=None, init="glorot_uniform", optimizer=None):
+        """
+        A fully-connected (dense) layer.
+        Notes
+        -----
+        A fully connected layer computes the function
+        .. math::
+            \mathbf{Y} = f( \mathbf{WX} + \mathbf{b} )
+        where `f` is the activation nonlinearity, **W** and **b** are
+        parameters of the layer, and **X** is the minibatch of input examples.
+        Parameters
+        ----------
+        n_out : int
+            The dimensionality of the layer output
+        act_fn : str, :doc:`Activation <numpy_ml.neural_nets.activations>` object, or None
+            The element-wise output nonlinearity used in computing `Y`. If None,
+            use the identity function :math:`f(X) = X`. Default is None.
+        init : {'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform'}
+            The weight initialization strategy. Default is `'glorot_uniform'`.
+        optimizer : str, :doc:`Optimizer <numpy_ml.neural_nets.optimizers>` object, or None
+            The optimization strategy to use when performing gradient updates
+            within the :meth:`update` method.  If None, use the :class:`SGD
+            <numpy_ml.neural_nets.optimizers.SGD>` optimizer with
+            default parameters. Default is None.
+        """
+        super().__init__(optimizer)
 
-    def load_params(self, weights, bias, trainable = False):
-        self.load_params_ = True
-        self.trainable = trainable
-        if self.trainable == False:
-            self.w = Parameter(data = weights,requires_grad=False)
-            self.b = Parameter(data = bias.reshape(-1,1),requires_grad=False)
-        elif self.trainable == True:
-            self.w = Parameter(data = weights)
-            self.b = Parameter(data = bias.reshape(-1,1))
+        self.init = init
+        self.n_in = None
+        self.n_out = n_out
+        self.act_fn = ActivationInitializer(act_fn)()
+        self.parameters = {"W": None, "b": None}
+        self.is_initialized = False
 
+    def _init_params(self):
+        init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 
-    def load_optimzer(self,optimizer=None):
-        # Weight optimizers
-        if optimizer is not None:
-            self.w_opt  = copy.copy(optimizer)
-            self.b_opt = copy.copy(optimizer)
+        b = np.zeros((1, self.n_out))
+        W = init_weights((self.n_in, self.n_out))
 
-    def initialize(self, optimizer=None):
-        np.random.seed(self.seed)
-        # Initialize the weights
-        limit = 1 / math.sqrt(self.input_shape[0])
+        self.parameters = {"W": W, "b": b}
+        self.derived_variables = {"Z": []}
+        self.gradients = {"W": np.zeros_like(W), "b": np.zeros_like(b)}
+        self.is_initialized = True
 
-        if self.trainable == False:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)), requires_grad=False)
-            self.b = Parameter(data = np.zeros((1, self.n_units)),requires_grad=False)
-        elif self.trainable == True:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, (self.input_shape[0], self.n_units)))
-            self.b = Parameter(data = np.zeros((1, self.n_units)))
-        # Weight optimizers
-        if optimizer is not None:
-            self.w_opt  = copy.copy(optimizer)
-            self.b_opt = copy.copy(optimizer)
+    @property
+    def hyperparameters(self):
+        """Return a dictionary containing the layer hyperparameters."""
+        return {
+            "layer": "FullyConnected",
+            "init": self.init,
+            "n_in": self.n_in,
+            "n_out": self.n_out,
+            "act_fn": str(self.act_fn),
+            "optimizer": {
+                "cache": self.optimizer.cache,
+                "hyperparameters": self.optimizer.hyperparameters,
+            },
+        }
 
-    def parameters_(self):
-        return np.prod(self.W.shape) + np.prod(self.b.shape)
+    def forward(self, X, retain_derived=True):
+        """
+        Compute the layer output on a single minibatch.
+        Parameters
+        ----------
+        X : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, n_in)`
+            Layer input, representing the `n_in`-dimensional features for a
+            minibatch of `n_ex` examples.
+        retain_derived : bool
+            Whether to retain the variables calculated during the forward pass
+            for use later during backprop. If False, this suggests the layer
+            will not be expected to backprop through wrt. this input. Default
+            is True.
+        Returns
+        -------
+        Y : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, n_out)`
+            Layer output for each of the `n_ex` examples.
+        """
+        if not self.is_initialized:
+            self.n_in = X.shape[1]
+            self._init_params()
 
-    def forward_pass(self, x, training=True):
-        self.layer_input = x.data
-        self.type = type(x)
-        depends_on: List[Dependency] = []
+        Y, Z = self._fwd(X)
 
-        data = x.data.dot(self.w.data) + self.b.data
-        requires_grad = x.requires_grad or self.w.requires_grad or self.b.requires_grad
-        if training:
-            if requires_grad:
-                if self.w.requires_grad:
-                    depends_on.append(Dependency(self.w, self.grad_w_dense))
-                if self.b.requires_grad:
-                    depends_on.append(Dependency(self.b, self.grad_b_dense))
-                if x.requires_grad:
-                    depends_on.append(Dependency(x, self.grad_a_dense))
-            else:
-                depends_on = []
-        return self.type(data=data,requires_grad=requires_grad,depends_on=depends_on)
+        if retain_derived:
+            self.X.append(X)
+            self.derived_variables["Z"].append(Z)
 
+        return Y
 
-    def grad_w_dense(self, accum_grad):
-        # Calculate gradient w.r.t layer weights
-        grad_w = self.layer_input.T.dot(accum_grad)
-        return grad_w
+    def _fwd(self, X):
+        """Actual computation of forward pass"""
+        W = self.parameters["W"]
+        b = self.parameters["b"]
 
-    def grad_b_dense(self, accum_grad):
-        # Calculate gradient w.r.t layer weights
-        grad_w0 = np.sum(accum_grad, axis=0, keepdims=True)
-        return grad_w0
+        Z = X @ W + b
+        Y = self.act_fn(Z)
+        return Y, Z
 
-    def grad_a_dense(self, accum_grad):
-        W = self.w.data
-        accum_grad = accum_grad.dot(W.T)
-        return accum_grad
+    def backward(self, dLdy, retain_grads=True):
+        """
+        Backprop from layer outputs to inputs.
+        Parameters
+        ----------
+        dLdy : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, n_out)` or list of arrays
+            The gradient(s) of the loss wrt. the layer output(s).
+        retain_grads : bool
+            Whether to include the intermediate parameter gradients computed
+            during the backward pass in the final parameter update. Default is
+            True.
+        Returns
+        -------
+        dLdX : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, n_in)` or list of arrays
+            The gradient of the loss wrt. the layer input(s) `X`.
+        """
+        assert self.trainable, "Layer is frozen"
+        if not isinstance(dLdy, list):
+            dLdy = [dLdy]
 
-    def update_pass(self):
-        # Update the layer weights
-        if self.trainable:
-            self.w = self.w_opt.update(self.w)
-            self.b = self.b_opt.update(self.b)
-        # clear the gradients
-        self.zero_grad()
+        dX = []
+        X = self.X
+        for dy, x in zip(dLdy, X):
+            dx, dw, db = self._bwd(dy, x)
+            dX.append(dx)
 
-    def output_shape(self):
-        return (self.n_units, )
+            if retain_grads:
+                self.gradients["W"] += dw
+                self.gradients["b"] += db
+
+        return dX[0] if len(X) == 1 else dX
+
+    def _bwd(self, dLdy, X):
+        """Actual computation of gradient of the loss wrt. X, W, and b"""
+        W = self.parameters["W"]
+        b = self.parameters["b"]
+
+        Z = X @ W + b
+        dZ = dLdy * self.act_fn.grad(Z)
+
+        dX = dZ @ W.T
+        dW = X.T @ dZ
+        dB = dZ.sum(axis=0, keepdims=True)
+        return dX, dW, dB
+
+    def _bwd2(self, dLdy, X, dLdy_bwd):
+        """Compute second derivatives / deriv. of loss wrt. dX, dW, and db"""
+        W = self.parameters["W"]
+        b = self.parameters["b"]
+
+        dZ = self.act_fn.grad(X @ W + b)
+        ddZ = self.act_fn.grad2(X @ W + b)
+
+        ddX = dLdy @ W * dZ
+        ddW = dLdy.T @ (dLdy_bwd * dZ)
+        ddB = np.sum(dLdy @ W * dLdy_bwd * ddZ, axis=0, keepdims=True)
+        return ddX, ddW, ddB

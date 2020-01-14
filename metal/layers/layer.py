@@ -1,141 +1,112 @@
 import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from metal.module import Module
-from autograd.dependency import Dependency
-import math
-import copy
-from metal.layers.activation_functions import Sigmoid, ReLU, TanH, Softmax
-from metal.utils.layer_data_manipulations import *
+from abc import ABC, abstractmethod
+from metal.initializers.optimizer_init import OptimizerInitializer
+from metal.initializers.activation_init import ActivationInitializer
 
 
-activation_functions = {
-    'relu': ReLU,
-    'sigmoid': Sigmoid,
-    'tanh': TanH,
-    'softmax':Softmax,
-}
+class LayerBase(ABC):
+    def __init__(self, optimizer=None):
+        """An abstract base class inherited by all nerual network layers"""
+        self.X = []
+        self.act_fn = None
+        self.trainable = True
+        self.optimizer = OptimizerInitializer(optimizer)()
 
-class Layer(Module):
-    __slots__ = ('input_shape')
-    """docstring for Layer."""
+        self.gradients = {}
+        self.parameters = {}
+        self.derived_variables = {}
 
-    def set_input_shape(self, shape):
-        """ Sets the shape that the layer expects of the input in the forward
-        pass method """
-        self.input_shape = shape
+        super().__init__()
 
-    def layer_name(self):
-        """ The name of the layer. Used in model summary. """
-        return self.__class__.__name__
+    @abstractmethod
+    def _init_params(self, **kwargs):
+        raise NotImplementedError
 
-    def parameters_(self):
-        """ The number of trainable parameters used by the layer """
-        return 0
+    @abstractmethod
+    def forward(self, z, **kwargs):
+        raise NotImplementedError
 
-    def forward_pass(self, X, training):
-        """ Propogates the signal forward in the network """
-        raise NotImplementedError()
+    @abstractmethod
+    def backward(self, out, **kwargs):
+        raise NotImplementedError
 
-    def update_pass(self):
-        """ Propogates the accumulated gradient backwards in the network.
-        If the has trainable weights then these weights are also tuned in this method.
-        As input (accum_grad) it receives the gradient with respect to the output of the layer and
-        returns the gradient with respect to the output of the previous layer. """
-        raise NotImplementedError()
+    def freeze(self):
+        """
+        Freeze the layer parameters at their current values so they can no
+        longer be updated.
+        """
+        self.trainable = False
 
-    def output_shape(self):
-        """ The shape of the output produced by forward_pass """
-        raise NotImplementedError()
-
-
-
-class Activation(Layer):
-    __slots__=('activation_name','activation_func','trainable','layer_input')
-    """A layer that applies an activation operation to the input.
-
-    Parameters:
-    -----------
-    name: string
-        The name of the activation function that will be used.
-    """
-
-    def __init__(self, name):
-        self.activation_name = name
-        self.activation_func = activation_functions[name]()
+    def unfreeze(self):
+        """Unfreeze the layer parameters so they can be updated."""
         self.trainable = True
 
-    def layer_name(self):
-        return "Activation (%s)" % (self.activation_func.__class__.__name__)
+    def flush_gradients(self):
+        """Erase all the layer's derived variables and gradients."""
+        assert self.trainable, "Layer is frozen"
+        self.X = []
+        for k, v in self.derived_variables.items():
+            self.derived_variables[k] = []
 
-    def forward_pass(self, X, training):
-        return self.activation_func(X, training)
+        for k, v in self.gradients.items():
+            self.gradients[k] = np.zeros_like(v)
 
-    def update_pass(self):
-        self.zero_grad()
+    def update(self, cur_loss=None):
+        """
+        Update the layer parameters using the accrued gradients and layer
+        optimizer. Flush all gradients once the update is complete.
+        """
+        assert self.trainable, "Layer is frozen"
+        self.optimizer.step()
+        for k, v in self.gradients.items():
+            if k in self.parameters:
+                self.parameters[k] = self.optimizer(self.parameters[k], v, k, cur_loss)
+        self.flush_gradients()
 
-    def output_shape(self):
-        return self.input_shape
+    def set_params(self, summary_dict):
+        """
+        Set the layer parameters from a dictionary of values.
+        Parameters
+        ----------
+        summary_dict : dict
+            A dictionary of layer parameters and hyperparameters. If a required
+            parameter or hyperparameter is not included within `summary_dict`,
+            this method will use the value in the current layer's
+            :meth:`summary` method.
+        Returns
+        -------
+        layer : :doc:`Layer <numpy_ml.neural_nets.layers>` object
+            The newly-initialized layer.
+        """
+        layer, sd = self, summary_dict
 
-class PoolingLayer(Layer):
-    """A parent class of MaxPooling2D and AveragePooling2D
-    """
-    def __init__(self, pool_shape=(2, 2), stride=1, padding=0):
-        self.pool_shape = pool_shape
-        self.stride = stride
-        self.padding = padding
-        self.trainable = True
+        # collapse `parameters` and `hyperparameters` nested dicts into a single
+        # merged dictionary
+        flatten_keys = ["parameters", "hyperparameters"]
+        for k in flatten_keys:
+            if k in sd:
+                entry = sd[k]
+                sd.update(entry)
+                del sd[k]
 
-    def forward_pass(self, x, training=True):
-        self.layer_input = x
-        X = x.data
-        self.type = type(x)
+        for k, v in sd.items():
+            if k in self.parameters:
+                layer.parameters[k] = v
+            if k in self.hyperparameters:
+                if k == "act_fn":
+                    layer.act_fn = ActivationInitializer(v)()
+                if k == "optimizer":
+                    layer.optimizer = OptimizerInitializer(sd[k])()
+                if k not in ["wrappers", "optimizer"]:
+                    setattr(layer, k, v)
+                if k == "wrappers":
+                    layer = init_wrappers(layer, sd[k])
+        return layer
 
-        requires_grad = x.requires_grad
-
-        batch_size, channels, height, width = X.shape
-
-        _, out_height, out_width = self.output_shape()
-
-        X = X.reshape(batch_size*channels, 1, height, width)
-        X_col = image_to_column(X, self.pool_shape, self.stride, self.padding)
-
-        # MaxPool or AveragePool specific method
-        output = self._pool_forward(X_col)
-
-        output = output.reshape(out_height, out_width, batch_size, channels)
-        output = output.transpose(2, 3, 0, 1)
-
-        if training:
-            if requires_grad:
-                depends_on = [Dependency(x, self.grad_pool)]
-            else:
-                depends_on = []
-        else:
-            depends_on = []
-
-        return self.type(data=output, requires_grad=requires_grad, depends_on=depends_on)
-
-    def grad_pool(self, accum_grad):
-        batch_size, _, _, _ = accum_grad.shape
-        channels, height, width = self.input_shape
-        accum_grad = accum_grad.transpose(2, 3, 0, 1).ravel()
-
-        # MaxPool or AveragePool specific method
-        accum_grad_col = self._pool_backward(accum_grad)
-
-        accum_grad = column_to_image(accum_grad_col, (batch_size * channels, 1, height, width), self.pool_shape, self.stride, self.padding)
-        accum_grad = accum_grad.reshape((batch_size,) + self.input_shape)
-
-        return accum_grad
-
-    def update_pass(self):
-        pass
-
-    def output_shape(self):
-        channels, height, width = self.input_shape
-        out_height = (height - self.pool_shape[0]) / self.stride + 1
-        out_width = (width - self.pool_shape[1]) / self.stride + 1
-        assert out_height % 1 == 0
-        assert out_width % 1 == 0
-        return channels, int(out_height), int(out_width)
+    def summary(self):
+        """Return a dict of the layer parameters, hyperparameters, and ID."""
+        return {
+            "layer": self.hyperparameters["layer"],
+            "parameters": self.parameters,
+            "hyperparameters": self.hyperparameters,
+        }

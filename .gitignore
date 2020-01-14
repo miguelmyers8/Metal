@@ -13,10 +13,11 @@ basic-test.ipynb
 /experimental/__pycache__
 /experimental/lib/__pycache__
 /metal.egg-info
-/metal/layers/pooling.py
+#/metal/layers/pooling.py
 /tests/.ipynb_checkpoints
 /trash
 /board
+/deprecated
 /viz
 /examples/randomdata.ipynb
 /examples/Untitled.ipynb

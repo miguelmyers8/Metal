@@ -1,159 +1,197 @@
 import numpy as np
-from autograd.tensor import Tensor
-from autograd.parameter import Parameter
-from autograd.dependency import Dependency
-import math
-import copy
-from metal.layers.layer import Layer
-from metal.utils.layer_data_manipulations import *
 
-class Conv2D(Layer):
-    __slots__ =('n_filters','filter_shape','padding','stride','trainable','seed','w','b','w_opt','b_opt','type','layer_input','X_col','W_col')
+from metal.layers.layer import LayerBase
+from metal.initializers.activation_init import ActivationInitializer, Affine, ReLU
+from metal.initializers.weight_init import WeightInitializer
+from metal.utils.utils import (pad2D,conv2D,im2col,col2im,dilate,calc_pad_dims_2D)
 
-    """A 2D Convolution Layer.
-    Parameters:
-    -----------
-    n_filters: int
-        The number of filters that will convolve over the input matrix. The number of channels
-        of the output shape.
-    filter_shape: tuple
-        A tuple (filter_height, filter_width).
-    input_shape: tuple
-        The shape of the expected input of the layer. (batch_size, channels, height, width)
-        Only needs to be specified for first layer in the network.
-    padding: string
-        Either 'same' or 'valid'. 'same' results in padding being added so that the output height and width
-        matches the input height and width. For 'valid' no padding is added.
-    stride: int
-        The stride length of the filters during the convolution over the input.
-    """
-    def __init__(self, n_filters, filter_shape, input_shape=None, padding='same', stride=1, seed=None):
-        self.n_filters = n_filters
-        self.filter_shape = filter_shape
-        self.padding = padding
+class Conv2D(LayerBase):
+    def __init__(self,out_ch,kernel_shape,pad=0,stride=1,dilation=0,act_fn=None,optimizer=None,init="glorot_uniform"):
+        """
+        Apply a two-dimensional convolution kernel over an input volume.
+        Notes
+        -----
+        Equations::
+            out = act_fn(pad(X) * W + b)
+            n_rows_out = floor(1 + (n_rows_in + pad_left + pad_right - filter_rows) / stride)
+            n_cols_out = floor(1 + (n_cols_in + pad_top + pad_bottom - filter_cols) / stride)
+        where `'*'` denotes the cross-correlation operation with stride `s` and
+        dilation `d`.
+        Parameters
+        ----------
+        out_ch : int
+            The number of filters/kernels to compute in the current layer
+        kernel_shape : 2-tuple
+            The dimension of a single 2D filter/kernel in the current layer
+        act_fn : str, :doc:`Activation <numpy_ml.neural_nets.activations>` object, or None
+            The activation function for computing ``Y[t]``. If None, use the
+            identity function :math:`f(X) = X` by default. Default is None.
+        pad : int, tuple, or 'same'
+            The number of rows/columns to zero-pad the input with. Default is
+            0.
+        stride : int
+            The stride/hop of the convolution kernels as they move over the
+            input volume. Default is 1.
+        dilation : int
+            Number of pixels inserted between kernel elements. Effective kernel
+            shape after dilation is: ``[kernel_rows * (d + 1) - d, kernel_cols
+            * (d + 1) - d]``. Default is 0.
+        init : {'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform'}
+            The weight initialization strategy. Default is `'glorot_uniform'`.
+        optimizer : str, :doc:`Optimizer <numpy_ml.neural_nets.optimizers>` object, or None
+            The optimization strategy to use when performing gradient updates
+            within the :meth:`update` method.  If None, use the :class:`SGD
+            <numpy_ml.neural_nets.optimizers.SGD>` optimizer with
+            default parameters. Default is None.
+        """
+        super().__init__(optimizer)
+
+        self.pad = pad
+        self.init = init
+        self.in_ch = None
+        self.out_ch = out_ch
         self.stride = stride
-        self.input_shape = input_shape
-        self.trainable = True
-        self.seed = seed
-        self.load_params_ = False
+        self.dilation = dilation
+        self.kernel_shape = kernel_shape
+        self.act_fn = ActivationInitializer(act_fn)()
+        self.parameters = {"W": None, "b": None}
+        self.is_initialized = False
 
-    def load_params(self, weights, bias, trainable=False):
-        self.load_params_ = True
-        self.trainable = trainable
+    def _init_params(self):
+        init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 
-        if self.trainable == False:
-            self.w = Parameter(data = weights,requires_grad=False)
-            self.b = Parameter(data = bias.reshape(-1,1),requires_grad=False)
-        elif self.trainable == True:
-            self.w = Parameter(data = weights)
-            self.b = Parameter(data = bias.reshape(-1,1))
+        fr, fc = self.kernel_shape
+        W = init_weights((fr, fc, self.in_ch, self.out_ch))
+        b = np.zeros((1, 1, 1, self.out_ch))
+
+        self.parameters = {"W": W, "b": b}
+        self.gradients = {"W": np.zeros_like(W), "b": np.zeros_like(b)}
+        self.derived_variables = {"Z": [], "out_rows": [], "out_cols": []}
+        self.is_initialized = True
+
+    @property
+    def hyperparameters(self):
+        """Return a dictionary containing the layer hyperparameters."""
+        return {
+            "layer": "Conv2D",
+            "pad": self.pad,
+            "init": self.init,
+            "in_ch": self.in_ch,
+            "out_ch": self.out_ch,
+            "stride": self.stride,
+            "dilation": self.dilation,
+            "act_fn": str(self.act_fn),
+            "kernel_shape": self.kernel_shape,
+            "optimizer": {
+                "cache": self.optimizer.cache,
+                "hyperparameters": self.optimizer.hyperparameters,
+            },
+        }
+
+    def forward(self, X, retain_derived=True):
+        """
+        Compute the layer output given input volume `X`.
+        Parameters
+        ----------
+        X : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, in_rows, in_cols, in_ch)`
+            The input volume consisting of `n_ex` examples, each with dimension
+            (`in_rows`, `in_cols`, `in_ch`).
+        retain_derived : bool
+            Whether to retain the variables calculated during the forward pass
+            for use later during backprop. If False, this suggests the layer
+            will not be expected to backprop through wrt. this input. Default
+            is True.
+        Returns
+        -------
+        Y : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, out_rows, out_cols, out_ch)`
+            The layer output.
+        """
+        if not self.is_initialized:
+            self.in_ch = X.shape[3]
+            self._init_params()
+
+        W = self.parameters["W"]
+        b = self.parameters["b"]
+
+        n_ex, in_rows, in_cols, in_ch = X.shape
+        s, p, d = self.stride, self.pad, self.dilation
+
+        # pad the input and perform the forward convolution
+        Z = conv2D(X, W, s, p, d) + b
+        Y = self.act_fn(Z)
+
+        if retain_derived:
+            self.X.append(X)
+            self.derived_variables["Z"].append(Z)
+            self.derived_variables["out_rows"].append(Z.shape[1])
+            self.derived_variables["out_cols"].append(Z.shape[2])
+
+        return Y
+
+    def backward(self, dLdy, retain_grads=True):
+        """
+        Compute the gradient of the loss with respect to the layer parameters.
+        Notes
+        -----
+        Relies on :meth:`~numpy_ml.neural_nets.utils.im2col` and
+        :meth:`~numpy_ml.neural_nets.utils.col2im` to vectorize the
+        gradient calculation.
+        See the private method :meth:`_backward_naive` for a more straightforward
+        implementation.
+        Parameters
+        ----------
+        dLdy : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, out_rows,
+        out_cols, out_ch)` or list of arrays
+            The gradient(s) of the loss with respect to the layer output(s).
+        retain_grads : bool
+            Whether to include the intermediate parameter gradients computed
+            during the backward pass in the final parameter update. Default is
+            True.
+        Returns
+        -------
+        dX : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, in_rows, in_cols, in_ch)`
+            The gradient of the loss with respect to the layer input volume.
+        """
+        assert self.trainable, "Layer is frozen"
+        if not isinstance(dLdy, list):
+            dLdy = [dLdy]
+
+        dX = []
+        X = self.X
+        Z = self.derived_variables["Z"]
+
+        for dy, x, z in zip(dLdy, X, Z):
+            dx, dw, db = self._bwd(dy, x, z)
+            dX.append(dx)
+
+            if retain_grads:
+                self.gradients["W"] += dw
+                self.gradients["b"] += db
+
+        return dX[0] if len(X) == 1 else dX
 
 
-    def load_optimzer(self,optimizer=None):
-        # Weight optimizers
-        if optimizer is not None:
-            self.w_opt  = copy.copy(optimizer)
-            self.b_opt = copy.copy(optimizer)
+    def _bwd(self, dLdy, X, Z):
+            """Actual computation of gradient of the loss wrt. X, W, and b"""
+            W = self.parameters["W"]
 
-    def initialize(self, optimizer=None):
-        np.random.seed(self.seed)
-        # Initialize the weights
-        filter_height, filter_width = self.filter_shape
-        channels = self.input_shape[0]
-        limit = 1 / math.sqrt(np.prod(self.filter_shape))
-        # create filter
-        # grad would be zeros instead of None :bugfix
-        if self.trainable == False:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)),requires_grad=False)
-            self.b = Parameter(data = np.zeros((self.n_filters, 1)),requires_grad=False)
-        elif self.trainable == True:
-            self.w = Parameter(data = np.random.uniform(-limit, limit, size=(self.n_filters, channels, filter_height, filter_width)))
-            self.b = Parameter(data = np.zeros((self.n_filters, 1)))
-        # Weight optimizers
-        if optimizer is not None:
-            self.w_opt  = copy.copy(optimizer)
-            self.b_opt = copy.copy(optimizer)
+            d = self.dilation
+            fr, fc, in_ch, out_ch = W.shape
+            n_ex, out_rows, out_cols, out_ch = dLdy.shape
+            (fr, fc), s, p = self.kernel_shape, self.stride, self.pad
 
-    def parameters_(self):
-        return np.prod(self.w.shape) + np.prod(self.b.shape)
+            # columnize W, X, and dLdy
+            dLdZ = dLdy * self.act_fn.grad(Z)
+            dLdZ_col = dLdZ.transpose(3, 1, 2, 0).reshape(out_ch, -1)
+            W_col = W.transpose(3, 2, 0, 1).reshape(out_ch, -1).T
+            X_col, p = im2col(X, W.shape, p, s, d)
 
-    def forward_pass(self, x, training):
+            # compute gradients via matrix multiplication and reshape
+            dB = dLdZ_col.sum(axis=1).reshape(1, 1, 1, -1)
+            dW = (dLdZ_col @ X_col.T).reshape(out_ch, in_ch, fr, fc).transpose(2, 3, 1, 0)
 
-        X = x.data
-        self.type = type(x)
-        requires_grad = x.requires_grad or self.w.requires_grad or self.b.requires_grad
-        depends_on: List[Dependency] = []
+            # reshape columnized dX back into the same format as the input volume
+            dX_col = W_col @ dLdZ_col
+            dX = col2im(dX_col, X.shape, W.shape, p, s, d).transpose(0, 2, 3, 1)
 
-        batch_size, channels, height, width = X.shape
-        self.layer_input = X
-        # Turn image shape into column shape
-        # (enables dot product between input and weights)
-        self.X_col = image_to_column(X, self.filter_shape, stride=self.stride, output_shape=self.padding)
-        # Turn weights into column shape
-        self.W_col = self.w.data.reshape((self.n_filters, -1))
-        # Calculate output
-        output = self.W_col.dot(self.X_col) + self.b.data
-        # Reshape into (n_filters, out_height, out_width, batch_size)
-        output = output.reshape(self.output_shape() + (batch_size, ))
-        # Redistribute axises so that batch size comes first
-        if training:
-            if requires_grad:
-                if self.w.requires_grad:
-                    depends_on.append(Dependency(self.w, self.grad_w_conv2D))
-                if self.b.requires_grad:
-                    depends_on.append(Dependency(self.b, self.grad_b_conv2D))
-                if x.requires_grad:
-                    depends_on.append(Dependency(x, self.grad_a_conv2D))
-            else:
-                depends_on = []
-        return self.type(data=output.transpose(3,0,1,2),requires_grad=requires_grad,depends_on=depends_on)
-
-
-    def grad_w_conv2D(self, accum_grad):
-        # Reshape accumulated gradient into column shape
-        accum_grad = accum_grad.transpose(1, 2, 3, 0).reshape(self.n_filters, -1)
-        # Take dot product between column shaped accum. gradient and column shape
-        # layer input to determine the gradient at the layer with respect to layer weights
-        grad_w = accum_grad.dot(self.X_col.T).reshape(self.w.shape)
-
-        return grad_w
-
-    def grad_b_conv2D(self, accum_grad):
-        # Reshape accumulated gradient into column shape
-        accum_grad = accum_grad.transpose(1, 2, 3, 0).reshape(self.n_filters, -1)
-        # The gradient with respect to bias terms is the sum similarly to in Dense layer
-        grad_w0 = np.sum(accum_grad, axis=1, keepdims=True)
-
-        return grad_w0
-
-    def grad_a_conv2D(self, accum_grad):
-        # Reshape accumulated gradient into column shape
-        accum_grad = accum_grad.transpose(1, 2, 3, 0).reshape(self.n_filters, -1)
-        # Recalculate the gradient which will be propogated back to prev. layer
-        accum_grad = self.W_col.T.dot(accum_grad)
-        # Reshape from column shape to image shape
-        accum_grad = column_to_image(accum_grad,
-                                self.layer_input.shape,
-                                self.filter_shape,
-                                stride=self.stride,
-                                output_shape=self.padding)
-
-        return accum_grad
-
-    def update_pass(self):
-        # Update the layer weights
-        if self.trainable:
-            self.w = self.w_opt.update(self.w)
-            self.b = self.b_opt.update(self.b)
-        # clear the gradients
-        self.zero_grad()
-
-
-
-
-    def output_shape(self):
-        channels, height, width = self.input_shape
-        pad_h, pad_w = determine_padding(self.filter_shape, output_shape=self.padding)
-        output_height = (height + np.sum(pad_h) - self.filter_shape[0]) / self.stride + 1
-        output_width = (width + np.sum(pad_w) - self.filter_shape[1]) / self.stride + 1
-        return self.n_filters, int(output_height), int(output_width)
+            return dX, dW, dB
