@@ -23,6 +23,7 @@ class SchedulerBase(ABC):
             for k, v in hparam_dict.items():
                 if k in self.hyperparameters:
                     self.hyperparameters[k] = v
+        return self
 
     @abstractmethod
     def learning_rate(self, step=None):
