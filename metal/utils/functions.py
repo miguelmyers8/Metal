@@ -45,7 +45,63 @@ def gaussian_cdf(x, mean, var):
     eps = np.finfo(float).eps
     x_scaled = (x - mean) / np.sqrt(var + eps)
     return (1 + erf(x_scaled / np.sqrt(2))) / 2
-    
+
+
+#######################################################################
+#                             Assertions                              #
+#######################################################################
+
+
+def is_symmetric(X):
+    """Check that an array `X` is symmetric along its main diagonal"""
+    return np.allclose(X, X.T)
+
+
+def is_symmetric_positive_definite(X):
+    """
+    Check that a matrix `X` is a symmetric and positive-definite.
+    """
+    if is_symmetric(X):
+        try:
+            # if matrix is symmetric, check whether the Cholesky decomposition
+            # (defined only for symmetric/Hermitian positive definite matrices)
+            # exists
+            np.linalg.cholesky(X)
+            return True
+        except np.linalg.LinAlgError:
+            return False
+    return False
+
+
+def is_stochastic(X):
+    """True if `X` contains probabilities that sum to 1 along the columns"""
+    msg = "Array should be stochastic along the columns"
+    assert len(X[X < 0]) == len(X[X > 1]) == 0, msg
+    assert np.allclose(np.sum(X, axis=1), np.ones(X.shape[0])), msg
+    return True
+
+
+def is_number(a):
+    """Check that a value `a` is numeric"""
+    return isinstance(a, numbers.Number)
+
+
+def is_one_hot(x):
+    """Return True if array `x` is a binary array with a single 1"""
+    msg = "Matrix should be one-hot binary"
+    assert np.array_equal(x, x.astype(bool)), msg
+    assert np.allclose(np.sum(x, axis=1), np.ones(x.shape[0])), msg
+    return True
+
+
+def is_binary(x):
+    """Return True if array `x` consists only of binary values"""
+    msg = "Matrix must be binary"
+    assert np.array_equal(x, x.astype(bool)), msg
+    return True
+
+
+
 #######################################################################
 #                          functions Metal                            #
 #######################################################################
@@ -54,3 +110,7 @@ def gaussian_cdf(x, mean, var):
 #######################################################################
 #                           ML-scratch                                #
 #######################################################################
+def accuracy_score(y_true, y_pred):
+    """ Compare y_true to y_pred and return the accuracy """
+    accuracy = np.sum(y_true == y_pred, axis=0) / len(y_true)
+    return accuracy

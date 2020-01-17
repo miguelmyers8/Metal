@@ -120,3 +120,41 @@ class ReLU(ActivationBase):
             \\frac{\partial^2 \\text{ReLU}}{\partial x_i^2}  =  0
         """
         return np.zeros_like(x)
+
+
+class Sigmoid(ActivationBase):
+    def __init__(self):
+        """
+        A logistic sigmoid activation function.
+        """
+        super().__init__()
+
+    def __str__(self):
+        return "Sigmoid"
+
+    def fn(self, z):
+        """
+        Evaluate the logistic sigmoid, :math:`\sigma`, on the elements of input `z`.
+        .. math::
+            \sigma(x_i) = \\frac{1}{1 + e^{-x_i}}
+        """
+        return 1 / (1 + np.exp(-z))
+
+    def grad(self, x):
+        """
+        Evaluate the first derivative of the logistic sigmoid on the elements of `x`.
+        .. math::
+            \\frac{\partial \sigma}{\partial x_i} = \sigma(x_i) (1 - \sigma(x_i))
+        """
+        fn_x = self.fn(x)
+        return fn_x * (1 - fn_x)
+
+    def grad2(self, x):
+        """
+        Evaluate the second derivative of the logistic sigmoid on the elements of `x`.
+        .. math::
+            \\frac{\partial^2 \sigma}{\partial x_i^2} =
+                \\frac{\partial \sigma}{\partial x_i} (1 - 2 \sigma(x_i))
+        """
+        fn_x = self.fn_x
+        return fn_x * (1 - fn_x) * (1 - 2 * fn_x)

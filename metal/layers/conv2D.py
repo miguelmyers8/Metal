@@ -1,9 +1,9 @@
 import numpy as np
 
 from metal.layers.layer import LayerBase
-from metal.initializers.activation_init import ActivationInitializer, Affine, ReLU
+from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
-from metal.utils.utils import (pad2D,conv2D,im2col,col2im,dilate,calc_pad_dims_2D)
+from metal.utils.utils import pad2D, conv2D, im2col, col2im, dilate, calc_pad_dims_2D
 
 class Conv2D(LayerBase):
     def __init__(self,out_ch,kernel_shape,pad=0,stride=1,dilation=0,act_fn=None,optimizer=None,init="glorot_uniform"):
@@ -56,6 +56,10 @@ class Conv2D(LayerBase):
         self.act_fn = ActivationInitializer(act_fn)()
         self.parameters = {"W": None, "b": None}
         self.is_initialized = False
+
+    def __call__(self, optimizer):
+        super().__init__(optimizer)
+        return self
 
     def _init_params(self):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)

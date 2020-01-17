@@ -1,7 +1,7 @@
 import numpy as np
 
 from metal.layers.layer import LayerBase
-from metal.initializers.activation_init import ActivationInitializer, Affine, ReLU
+from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
 
 class Dense(LayerBase):
@@ -38,6 +38,10 @@ class Dense(LayerBase):
         self.act_fn = ActivationInitializer(act_fn)()
         self.parameters = {"W": None, "b": None}
         self.is_initialized = False
+
+    def __call__(self, optimizer):
+        super().__init__(optimizer)
+        return self
 
     def _init_params(self):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
