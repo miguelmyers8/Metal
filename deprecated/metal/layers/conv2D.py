@@ -4,8 +4,8 @@ from autograd.parameter import Parameter
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
-from metal.utils.layer_data_manipulations import *
+from deprecated.metal.layers.layer import Layer
+from deprecated.metal.utils.layer_data_manipulations import *
 
 class Conv2D(Layer):
     __slots__ =('n_filters','filter_shape','padding','stride','trainable','seed','w','b','w_opt','b_opt','type','layer_input','X_col','W_col')

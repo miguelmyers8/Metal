@@ -33,10 +33,6 @@ class Pool2D(LayerBase):
         self.kernel_shape = kernel_shape
         self.is_initialized = False
 
-    def __call__(self, optimizer):
-        super().__init__(optimizer)
-        return self
-        
     def _init_params(self):
         self.derived_variables = {"out_rows": [], "out_cols": []}
         self.is_initialized = True

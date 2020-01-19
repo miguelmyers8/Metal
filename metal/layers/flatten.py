@@ -22,10 +22,6 @@ class Flatten(LayerBase):
         self.keep_dim = keep_dim
         self._init_params()
 
-    def __call__(self, optimizer):
-        super().__init__(optimizer)
-        return self
-
     def _init_params(self):
         self.X = []
         self.gradients = {}

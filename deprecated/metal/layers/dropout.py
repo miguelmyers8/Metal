@@ -4,7 +4,7 @@ from autograd.parameter import Parameter
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
+from deprecated.metal.layers.layer import Layer
 
 
 class Dropout(Layer):

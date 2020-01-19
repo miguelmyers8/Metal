@@ -57,10 +57,6 @@ class Conv2D(LayerBase):
         self.parameters = {"W": None, "b": None}
         self.is_initialized = False
 
-    def __call__(self, optimizer):
-        super().__init__(optimizer)
-        return self
-
     def _init_params(self):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 

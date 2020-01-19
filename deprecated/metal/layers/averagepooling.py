@@ -1,5 +1,5 @@
 import numpy as np
-from metal.layers.layer import PoolingLayer
+from deprecated.metal.layers.layer import PoolingLayer
 
 class AveragePooling2D(PoolingLayer):
     def _pool_forward(self, X_col):

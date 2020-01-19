@@ -1,11 +1,11 @@
 import numpy as np
 from autograd.tensor import Tensor
 from autograd.parameter import Parameter
-from metal.module import Module
+from deprecated.metal.module import Module
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
+from deprecated.metal.layers.layer import Layer
 
 class Flatten(Layer):
     __slots__ =( 'prev_shape', 'trainable','type' )

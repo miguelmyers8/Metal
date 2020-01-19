@@ -4,7 +4,7 @@ import sys
 from google_images_download import google_images_download
 import os
 import shutil
-from metal.utils.production_util import create_training_data as create_training_data_
+from deprecated.metal.utils.production_util import create_training_data as create_training_data_
 from dotenv import load_dotenv
 import os
 from os.path import join, dirname

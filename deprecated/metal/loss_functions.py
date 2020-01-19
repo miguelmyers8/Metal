@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
-from metal.utils.data_operation import accuracy_score
-from metal.layers.activation_functions import Sigmoid
+from deprecated.metal.utils.data_operation import accuracy_score
+from deprecated.metal.layers.activation_functions import Sigmoid
 from autograd.dependency import Dependency
 
 class Loss(object):

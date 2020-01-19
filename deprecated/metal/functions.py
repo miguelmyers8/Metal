@@ -1,7 +1,7 @@
 import numpy as np
 from autograd.dependency import Dependency
 import math
-from metal.utils.layer_data_manipulations import determine_padding, get_im2col_indices
+from deprecated.metal.utils.layer_data_manipulations import determine_padding, get_im2col_indices
 
 """
 Utility file for defining functions or a classes that will forward prop and backward prop within metal.

@@ -2,8 +2,8 @@ from __future__ import print_function, division
 from terminaltables import AsciiTable
 import numpy as np
 import progressbar
-from metal.utils import batch_iterator
-from metal.utils.misc import bar_widgets
+from deprecated.metal.utils import batch_iterator
+from deprecated.metal.utils.misc import bar_widgets
 import matplotlib.pyplot as plt
 
 class NeuralNetwork(object):

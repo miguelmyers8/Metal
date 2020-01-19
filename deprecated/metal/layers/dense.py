@@ -1,12 +1,12 @@
 import numpy as np
 from autograd.tensor import Tensor
 from autograd.parameter import Parameter
-from metal.module import Module
+from deprecated.metal.module import Module
 from autograd.dependency import Dependency
 import math
 import copy
-from metal.layers.layer import Layer
-from metal.utils.layer_data_manipulations import *
+from deprecated.metal.layers.layer import Layer
+from deprecated.metal.utils.layer_data_manipulations import *
 
 class Dense(Layer):
     __slots__ =( 'layer_input','n_units','trainable', 'w','b', 'seed','type' )
