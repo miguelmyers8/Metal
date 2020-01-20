@@ -30,13 +30,13 @@ class CrossEntropy(Loss):
 
     def loss(self, y, p):
         # Avoid division by zero
-        p = np.clip(p, 1e-20, 1 - 1e-20)
-        return np.mean(- y * np.log(p) - (1 - y) * np.log(1 - p))
+        eps = np.finfo(float).eps
+        return np.mean(- y * np.log(p+eps) - (1 - y) * np.log((1 - p)+eps))
 
     def acc(self, y, p):
         return accuracy_score(np.argmax(y, axis=1), np.argmax(p, axis=1))
 
-    def gradient(self, y, p):
+    def grad(self, y, p):
         # Avoid division by zero
-        p = np.clip(p, 1e-20, 1 - 1e-20)
-        return - (y / p) + (1 - y) / (1 - p)
+        eps = np.finfo(float).eps
+        return - (y / p+eps) + (1 - y) / (1 - p+eps)

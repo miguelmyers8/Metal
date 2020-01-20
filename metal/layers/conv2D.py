@@ -3,7 +3,7 @@ import numpy as np
 from metal.layers.layer import LayerBase
 from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
-from metal.utils.utils import pad2D, conv2D, im2col, col2im, dilate, calc_pad_dims_2D
+from metal.utils.utils import pad2D, conv2D, im2col, col2im, dilate, calc_pad_dims_2D, dtype
 
 class Conv2D(LayerBase):
     def __init__(self,out_ch,kernel_shape,pad=0,stride=1,dilation=0,act_fn=None,optimizer=None,init="glorot_uniform"):
@@ -61,8 +61,8 @@ class Conv2D(LayerBase):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 
         fr, fc = self.kernel_shape
-        W = init_weights((fr, fc, self.in_ch, self.out_ch))
-        b = np.zeros((1, 1, 1, self.out_ch))
+        W = dtype(init_weights((fr, fc, self.in_ch, self.out_ch)))
+        b = dtype(np.zeros((1, 1, 1, self.out_ch)))
 
         self.parameters = {"W": W, "b": b}
         self.gradients = {"W": np.zeros_like(W), "b": np.zeros_like(b)}

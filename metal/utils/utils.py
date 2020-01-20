@@ -950,3 +950,15 @@ def truncated_normal(mean, std, out_shape):
         samples[reject] = resamples
         reject = np.logical_or(samples >= mean + 2 * std, samples <= mean - 2 * std)
     return samples
+
+
+def dtype(x,dtypes='float32'):
+    "change data type"
+    return x.astype('float32')
+
+
+def make_stochastic(x):
+    "make stochastic"
+    x = (x - np.mean(x)) / np.std(x)
+    x /= x.sum(axis=1, keepdims=True)
+    return x

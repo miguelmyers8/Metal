@@ -55,7 +55,7 @@ class NeuralNetwork(object):
         y_pred = self._forward_pass(X, retain_derived=True)
         loss = self.loss_function.loss(y, y_pred)
         acc = self.loss_function.acc(y, y_pred)
-        gradient = self.loss_function.gradient(y, y_pred)
+        gradient = self.loss_function.grad(y, y_pred)
         #Calculate the gradient of the loss function wrt y_pred
         self._backward_pass(loss_grad=gradient)
         #Update weights
@@ -94,7 +94,7 @@ class NeuralNetwork(object):
             if self.val_set is not None:
                 val_loss, val_acc = self.test_on_batch(self.val_set["X"], self.val_set["y"])
                 self.errors["validation"].append(val_loss)
-            
+
 
         return self.errors["training"], self.errors["validation"]
 
@@ -114,6 +114,6 @@ class NeuralNetwork(object):
         print ("Accuracy:", accuracy)
 
     def predict(self, X):
-        pred = self._forward_pass(X, training=False)
+        pred = self._forward_pass(X, retain_derived=False)
         list_pred = pred.data.flatten().tolist()
         return list_pred.index(max(list_pred))

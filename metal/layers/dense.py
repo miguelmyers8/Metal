@@ -3,6 +3,7 @@ import numpy as np
 from metal.layers.layer import LayerBase
 from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
+from metal.utils.utils import dtype
 
 class Dense(LayerBase):
     def __init__(self, n_out, act_fn=None, init="glorot_uniform", optimizer=None):
@@ -43,8 +44,8 @@ class Dense(LayerBase):
     def _init_params(self):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 
-        b = np.zeros((1, self.n_out))
-        W = init_weights((self.n_in, self.n_out))
+        b = dtype(np.zeros((1, self.n_out)))
+        W = dtype(init_weights((self.n_in, self.n_out)))
 
         self.parameters = {"W": W, "b": b}
         self.derived_variables = {"Z": []}
