@@ -1,6 +1,6 @@
 import numpy as np
 import re
-from metal.activations.activation import ActivationBase, Affine, ReLU, Sigmoid
+from metal.activations.activation import ActivationBase, Affine, ReLU, Sigmoid, Tanh
 
 class ActivationInitializer(object):
     def __init__(self, param=None):

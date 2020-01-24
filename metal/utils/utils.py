@@ -954,7 +954,7 @@ def truncated_normal(mean, std, out_shape):
 
 def dtype(x,dtypes='float32'):
     "change data type"
-    return x.astype('float32')
+    return x.astype(dtypes)
 
 
 def make_stochastic(x):

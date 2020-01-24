@@ -158,3 +158,40 @@ class Sigmoid(ActivationBase):
         """
         fn_x = self.fn_x
         return fn_x * (1 - fn_x) * (1 - 2 * fn_x)
+
+
+class Tanh(ActivationBase):
+    def __init__(self):
+        """
+        A hyperbolic tangent activation function.
+        """
+        super().__init__()
+
+    def __str__(self):
+        return "Tanh"
+
+    def fn(self, z):
+        """
+        Compute the tanh function on the elements of input `z`.
+        """
+        return np.tanh(z)
+
+    def grad(self, x):
+        """
+        Evaluate the first derivative of the tanh function on the elements
+        of input `x`.
+        .. math::
+            \\frac{\partial \\tanh}{\partial x_i}  =  1 - \\tanh(x)^2
+        """
+        return 1 - np.tanh(x) ** 2
+
+    def grad2(self, x):
+        """
+        Evaluate the second derivative of the tanh function on the elements
+        of input `x`.
+        .. math::
+            \\frac{\partial^2 \\tanh}{\partial x_i^2} =
+                -2 \\tanh(x) \left(\\frac{\partial \\tanh}{\partial x_i}\\right)
+        """
+        tanh_x = np.tanh(x)
+        return -2 * tanh_x * (1 - tanh_x ** 2)

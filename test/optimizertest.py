@@ -16,6 +16,9 @@ adamout_ = np.array([[ 1.62334536, -0.61175641, -0.52817175],
 adamoutdic = np.array([[ 1.5353082,  -0.61175641, -0.52817175],
                         [-1.07296862,  0.78417979, -2.3015387 ]])
 
+sgdout_ = np.array([[ 1.60810191, -0.61175641, -0.52817175],
+                        [-1.07296862 , 0.85675355, -2.3015387 ]])
+
 class optimizerstest(unittest.TestCase):
     def test_Adam_OptimizerInitializer_init_from_str(self):
         np.random.seed(1)
@@ -61,3 +64,17 @@ class optimizerstest(unittest.TestCase):
         assert(step == 1)
         assert(stepr == 0 )
         assert(adam.hyperparameters == adam.copy().hyperparameters)
+
+
+class optimizerstestsgd(unittest.TestCase):
+    def test_sgd_OptimizerInitializer_init_from_str(self):
+        np.random.seed(1)
+        scheduler_ = None
+        sgd = OptimizerInitializer('sgd')()
+        adamout = sgd(adamin,adamingrad,'adam_test_1')
+        assert('ConstantScheduler' == sgd.lr_scheduler.__class__.__name__)
+        assert np.allclose(adamout,sgdout_)
+        assert(sgd.hyperparameters['id']=='SGD')
+        assert(sgd.hyperparameters['lr']==0.01)
+        assert(sgd.hyperparameters['clip_norm']==None)
+        assert(sgd.hyperparameters['lr_scheduler']=='ConstantScheduler(lr=0.01)')

@@ -100,7 +100,11 @@ def is_binary(x):
     assert np.array_equal(x, x.astype(bool)), msg
     return True
 
-
+def random_one_hot_matrix(n_examples, n_classes):
+    """Create a random one-hot matrix of shape (`n_examples`, `n_classes`)"""
+    X = np.eye(n_classes)
+    X = X[np.random.choice(n_classes, n_examples)]
+    return X
 
 #######################################################################
 #                          functions Metal                            #

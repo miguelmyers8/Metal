@@ -112,6 +112,7 @@ class NeuralNetwork(object):
         plt.show()
         _, accuracy = self.test_on_batch(X_test, y_test)
         print ("Accuracy:", accuracy)
+        return accuracy
 
     def predict(self, X):
         pred = self._forward_pass(X, retain_derived=False)
