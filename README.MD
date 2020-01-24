@@ -6,6 +6,7 @@ A toy deep learning framework. This repo consist of my multiple deep learning tu
 [joelgrus/autograd](https://github.com/joelgrus/autograd)<br>
 [eriklindernoren/ML-From-Scratch](https://github.com/eriklindernoren/ML-From-Scratch)<br>
 [ddbourgin/numpy-ml](https://github.com/ddbourgin/numpy-ml)<br>
+[cs231](http://cs231n.github.io/)<br>
 [deeplearning.ai](https://www.deeplearning.ai/)
 
 
