@@ -21,3 +21,7 @@ $ pip install -e .
 - [ ] Finish Unittest
 - [ ] Clean cpp Package
 - [ ] Integrate cupy for gpu computation into autograd
+- [ ] Solver need optimization. way too slow
+- [ ] conv2D need optimization. way too slow (unitls.con2d is twice as slow when imported and used in con2d class)
+- [ ] Integrate viz. saliency-maps
+- [ ] data augmentation 

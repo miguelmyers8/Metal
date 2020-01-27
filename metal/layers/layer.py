@@ -30,6 +30,9 @@ class LayerBase(ABC):
     def backward(self, out, **kwargs):
         raise NotImplementedError
 
+    def change_optimizer(self,optimizer=None):
+        self.optimizer = OptimizerInitializer(optimizer)()
+
     def freeze(self):
         """
         Freeze the layer parameters at their current values so they can no

@@ -65,9 +65,9 @@ class activationstest(unittest.TestCase):
         time.sleep(1)
         test_FullyConnected(N)
 
-        #print("Testing Conv2D layer")
-        #time.sleep(1)
-        #test_Conv2D(N)
+        print("Testing Conv2D layer")
+        time.sleep(1)
+        test_Conv2D(N)
 
 
 
@@ -330,7 +330,7 @@ def test_FullyConnected(N=None):
 
 
 
-"""
+
 def test_Conv2D(N=None):
     from metal.layers.conv2D import Conv2D
     from metal.activations.activation import Tanh, ReLU, Sigmoid, Affine
@@ -379,7 +379,6 @@ def test_Conv2D(N=None):
             pad=p,
             stride=s,
             dilation=d,
-            optimizer=Adam()
         )
 
         # forward prop
@@ -415,4 +414,4 @@ def test_Conv2D(N=None):
                 mine, golds[label], err_msg=err_fmt(params, golds, ix), decimal=4
             )
             print("\tPASSED {}".format(label))
-"""
+        i += 1
