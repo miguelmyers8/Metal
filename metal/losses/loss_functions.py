@@ -30,7 +30,7 @@ class CrossEntropy(Loss):
 
     def loss(self, y, p):
         # Avoid division by zero
-        eps = np.finfo(float).eps
+        eps = np.finfo(np.float32).eps
         return np.mean(- y * np.log(p+eps) - (1 - y) * np.log((1 - p)+eps))
 
     def acc(self, y, p):
@@ -38,5 +38,5 @@ class CrossEntropy(Loss):
 
     def grad(self, y, p):
         # Avoid division by zero
-        eps = np.finfo(float).eps
+        eps = np.finfo(np.float32).eps
         return - (y / p+eps) + (1 - y) / (1 - p+eps)
