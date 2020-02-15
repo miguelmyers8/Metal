@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from metal.utils.functions import batch_iterator
 from metal.utils.misc import bar_widgets
 import progressbar
+from metal.learners.solver import Solver
 
 class NeuralNetwork(object):
-    #__slots__ = ('optimizer','layers','errors','loss_function','progressbar','val_set','trainable')
     """Neural Network. Deep Learning base model.
     Parameters:
     -----------
@@ -118,3 +118,6 @@ class NeuralNetwork(object):
         pred = self._forward_pass(X, retain_derived=False)
         list_pred = pred.data.flatten().tolist()
         return list_pred.index(max(list_pred))
+
+    def with_solver(self,data,**kwargs):
+        self.solver = Solver(self,data,**kwargs)

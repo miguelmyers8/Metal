@@ -104,7 +104,10 @@ Optional arguments:
 class Solver(object):
 
     def __init__(self, model, data, **kwargs):
-        self.model = model
+
+        self.layers = model.layers
+        self.loss_function = model.loss_function
+
         self.X_train = data['X_train']
         self.y_train = data['y_train']
         self.X_val = data['X_val']
@@ -139,7 +142,7 @@ class Solver(object):
         self._reset()
 
     def _init_optimizer(self):
-        for l in self.model.layers:
+        for l in self.layers:
             l.change_optimizer(self.update_rule(lr = self.optim_config['learning_rate']))
 
     def _reset(self):
@@ -166,7 +169,7 @@ class Solver(object):
         y_batch = self.y_train[batch_mask]
 
         # Compute loss and gradient
-        loss, _ = self.model.train_on_batch(X_batch, y_batch)
+        loss, _ = self.train_on_batch(X_batch, y_batch)
         self.loss_history.append(loss)
 
     def check_accuracy(self, X, y, num_samples=None, batch_size=100):
@@ -200,10 +203,9 @@ class Solver(object):
         for i in range(num_batches):
             start = i * batch_size
             end = (i + 1) * batch_size
-            scores = self.model._forward_pass(X[start:end],retain_derived=False)
+            scores = self._forward_pass(X[start:end],retain_derived=False)
             y_pred.append(np.argmax(scores, axis=1))
         y_pred = np.hstack(y_pred)
-        #acc = np.mean(y_pred == y)
         return accuracy_score(np.argmax(y, axis=1), y_pred)
 
     def train(self):
@@ -244,3 +246,48 @@ class Solver(object):
                 if self.verbose:
                     print('(Epoch %d / %d) train acc: %f; val_acc: %f' % (
                            self.epoch, self.num_epochs, train_acc, val_acc))
+
+                # Keep track of the best model
+                    if val_acc > self.best_val_acc:
+                        self.best_val_acc = val_acc
+                        self.best_params = {}
+
+                        for c,l in enumerate(self.layers):
+                            if "W" and "b" in l.parameters:
+                                for k, v in l.parameters.items():
+                                    self.best_params[k+str(c+1)] = v.copy()
+
+        for c,l in  enumerate(self.layers):
+            if "W" and "b" in l.parameters:
+                for k, v in l.parameters.items():
+                    l.parameters[k]=self.best_params[k+str(c+1)]
+
+
+    def _forward_pass(self, X, retain_derived=True):
+        """ Calculate the output of the NN """
+        layer_output = X
+        for layer in self.layers:
+            layer_output = layer.forward(layer_output, retain_derived)
+        return layer_output
+
+    def _backward_pass(self, loss_grad):
+        """ Propagate the gradient 'backwards' and update the weights in each layer """
+        for layer in reversed(self.layers):
+            loss_grad = layer.backward(loss_grad)
+
+    def _update_pass(self, loss):
+        """ Propagate the gradient 'backwards' and update the weights in each layer """
+        for layer in reversed(self.layers):
+            layer.update(loss)
+
+    def train_on_batch(self, X, y):
+        """ Single gradient update over one batch of samples """
+        y_pred = self._forward_pass(X, retain_derived=True)
+        loss = self.loss_function.loss(y, y_pred)
+        acc = self.loss_function.acc(y, y_pred)
+        gradient = self.loss_function.grad(y, y_pred)
+        #Calculate the gradient of the loss function wrt y_pred
+        self._backward_pass(loss_grad=gradient)
+        #Update weights
+        self._update_pass(loss=loss)
+        return loss, acc

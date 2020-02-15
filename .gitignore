@@ -17,7 +17,7 @@ basic-test.ipynb
 /tests/.ipynb_checkpoints
 /trash
 /board
-
+/lib.py
 /viz
 /examples/randomdata.ipynb
 /examples/Untitled.ipynb
@@ -32,7 +32,7 @@ basic-test.ipynb
 /examples
 /examples/Untitled1.ipynb
 /examples/Untitled2.ipynb
-
+/metal/utils/_.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

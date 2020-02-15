@@ -92,10 +92,18 @@ ss =Solver(nn,small_data,num_epochs=10, batch_size=64,
                 },
            #checkpoint_name='check_point_1',
                 verbose=True, print_every=100)
-class solvertest(unittest.TestCase):
-    def testsolver(self):
-        ss.train()
+
+class solvernntest(unittest.TestCase):
+    def testsolvernn(self):
+        nn.with_solver(small_data,num_epochs=10, batch_size=64,
+                        update_rule='Adam',
+                        optim_config={
+                          'learning_rate': 1e-3,
+                        },
+                   #checkpoint_name='check_point_1',
+                        verbose=True, print_every=100)
+        nn.solver.train()
         truacct= [0.205, 0.843, 0.846, 0.896, 0.905, 0.866, 0.901, 0.883, 0.897, 0.911, 0.926]
         truaccv=[0.20070833333333332,0.8519166666666667,0.84875,0.865625,0.8739166666666667,0.8644583333333333,0.8785416666666667,0.8790833333333333,0.878625,0.8762083333333334,0.883]
-        assert ss.train_acc_history == truacct
-        assert ss.val_acc_history == truaccv
+        assert nn.solver.train_acc_history == truacct
+        assert nn.solver.val_acc_history == truaccv
