@@ -1,9 +1,9 @@
-import numpy as np
 from metal.layers.layer import LayerBase
 from metal.utils.utils import pad2D
+from metal.utils.functional import _pool2D
 
 class Pool2D(LayerBase):
-    def __init__(self, kernel_shape, stride=1, pad=0, mode="max", optimizer=None):
+    def __init__(self, kernel_shape, stride=1, pad=0, mode="max", optimizer=None, data_format="channels_last"):
         """
         A single two-dimensional pooling layer.
         Parameters
@@ -32,6 +32,7 @@ class Pool2D(LayerBase):
         self.stride = stride
         self.kernel_shape = kernel_shape
         self.is_initialized = False
+        self.data_format = data_format
 
     def _init_params(self):
         self.derived_variables = {"out_rows": [], "out_cols": []}
@@ -77,95 +78,8 @@ class Pool2D(LayerBase):
             self.in_ch = self.out_ch = X.shape[3]
             self._init_params()
 
-        n_ex, in_rows, in_cols, nc_in = X.shape
-        (fr, fc), s, p = self.kernel_shape, self.stride, self.pad
-        X_pad, (pr1, pr2, pc1, pc2) = pad2D(X, p, self.kernel_shape, s)
-
-        out_rows = np.floor(1 + (in_rows + pr1 + pr2 - fr) / s).astype(int)
-        out_cols = np.floor(1 + (in_cols + pc1 + pc2 - fc) / s).astype(int)
-
-        if self.mode == "max":
-            pool_fn = np.max
-        elif self.mode == "average":
-            pool_fn = np.mean
-
-        Y = np.zeros((n_ex, out_rows, out_cols, self.out_ch))
-        for m in range(n_ex):
-            for i in range(out_rows):
-                for j in range(out_cols):
-                    for c in range(self.out_ch):
-                        # calculate window boundaries, incorporating stride
-                        i0, i1 = i * s, (i * s) + fr
-                        j0, j1 = j * s, (j * s) + fc
-
-                        xi = X_pad[m, i0:i1, j0:j1, c]
-                        Y[m, i, j, c] = pool_fn(xi)
-
-        if retain_derived:
-            self.X.append(X)
-            self.derived_variables["out_rows"].append(out_rows)
-            self.derived_variables["out_cols"].append(out_cols)
-
+        Y = _pool2D(X, self.kernel_shape, self.stride, self.pad,self.mode, self.data_format)
         return Y
 
-
-
-    def backward(self, dLdY, retain_grads=True):
-        """
-        Backprop from layer outputs to inputs
-        Parameters
-        ----------
-        dLdY : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, in_rows, in_cols, in_ch)`
-            The gradient of the loss wrt. the layer output `Y`.
-        retain_grads : bool
-            Whether to include the intermediate parameter gradients computed
-            during the backward pass in the final parameter update. Default is
-            True.
-        Returns
-        -------
-        dX : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, in_rows, in_cols, in_ch)`
-            The gradient of the loss wrt. the layer input `X`.
-        """
-        assert self.trainable, "Layer is frozen"
-        if not isinstance(dLdY, list):
-            dLdY = [dLdY]
-
-        Xs = self.X
-        out_rows = self.derived_variables["out_rows"]
-        out_cols = self.derived_variables["out_cols"]
-
-        (fr, fc), s, p = self.kernel_shape, self.stride, self.pad
-
-        dXs = []
-        for X, dy, out_row, out_col in zip(Xs, dLdY, out_rows, out_cols):
-            n_ex, in_rows, in_cols, nc_in = X.shape
-            X_pad, (pr1, pr2, pc1, pc2) = pad2D(X, p, self.kernel_shape, s)
-
-            dX = np.zeros_like(X_pad)
-            for m in range(n_ex):
-                for i in range(out_row):
-                    for j in range(out_col):
-                        for c in range(self.out_ch):
-                            # calculate window boundaries, incorporating stride
-                            i0, i1 = i * s, (i * s) + fr
-                            j0, j1 = j * s, (j * s) + fc
-
-                            if self.mode == "max":
-                                xi = X[m, i0:i1, j0:j1, c]
-
-                                # enforce that the mask can only consist of a
-                                # single `True` entry, even if multiple entries in
-                                # xi are equal to max(xi)
-                                mask = np.zeros_like(xi).astype(bool)
-                                x, y = np.argwhere(xi == np.max(xi))[0]
-                                mask[x, y] = True
-
-                                dX[m, i0:i1, j0:j1, c] += mask * dy[m, i, j, c]
-                            elif self.mode == "average":
-                                frame = np.ones((fr, fc)) * dy[m, i, j, c]
-                                dX[m, i0:i1, j0:j1, c] += frame / np.prod((fr, fc))
-
-            pr2 = None if pr2 == 0 else -pr2
-            pc2 = None if pc2 == 0 else -pc2
-            dXs.append(dX[:, pr1:pr2, pc1:pc2, :])
-        return dXs[0] if len(Xs) == 1 else dXs
+    def backward(self, retain_grads=True):
+        pass

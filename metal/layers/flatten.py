@@ -1,5 +1,7 @@
-import numpy as np
+import numpy as _np
 from metal.layers.layer import LayerBase
+from metal.autograd import numpy as np
+from metal.autograd import Container
 
 class Flatten(LayerBase):
     def __init__(self, keep_dim="first", optimizer=None):
@@ -20,13 +22,15 @@ class Flatten(LayerBase):
         super().__init__(optimizer)
 
         self.keep_dim = keep_dim
-        self._init_params()
+        self.is_initialized = False
+
 
     def _init_params(self):
         self.X = []
         self.gradients = {}
         self.parameters = {}
         self.derived_variables = {"in_dims": []}
+        self.is_initialized = True
 
     @property
     def hyperparameters(self):
@@ -58,31 +62,17 @@ class Flatten(LayerBase):
             Flattened output. If `keep_dim` is `'first'`, `X` is reshaped to
             ``(X.shape[0], -1)``, otherwise ``(-1, X.shape[0])``.
         """
+        if not self.is_initialized:
+            self._init_params()
+
         if retain_derived:
-            self.derived_variables["in_dims"].append(X.shape)
+            pass
+
         if self.keep_dim == -1:
             return X.flatten().reshape(1, -1)
+
         rs = (X.shape[0], -1) if self.keep_dim == "first" else (-1, X.shape[-1])
         return X.reshape(*rs)
 
-    def backward(self, dLdy, retain_grads=True):
-        """
-        Backprop from layer outputs to inputs.
-        Parameters
-        ----------
-        dLdY : :py:class:`ndarray <numpy.ndarray>` of shape `(\*out_dims)`
-            The gradient of the loss wrt. the layer output `Y`.
-        retain_grads : bool
-            Whether to include the intermediate parameter gradients computed
-            during the backward pass in the final parameter update. Default is
-            True.
-        Returns
-        -------
-        dX : :py:class:`ndarray <numpy.ndarray>` of shape `(\*in_dims)` or list of arrays
-            The gradient of the loss wrt. the layer input(s) `X`.
-        """
-        if not isinstance(dLdy, list):
-            dLdy = [dLdy]
-        in_dims = self.derived_variables["in_dims"]
-        out = [dy.reshape(*dims) for dy, dims in zip(dLdy, in_dims)]
-        return out[0] if len(dLdy) == 1 else out
+    def backward(self, retain_grads=True):
+        pass

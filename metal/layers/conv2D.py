@@ -1,4 +1,8 @@
-import numpy as np
+import numpy as _np
+
+
+from metal.autograd import numpy as np
+from metal.autograd import Container
 
 from metal.layers.layer import LayerBase
 from metal.initializers.activation_init import ActivationInitializer
@@ -61,11 +65,11 @@ class Conv2D(LayerBase):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 
         fr, fc = self.kernel_shape
-        W = dtype(init_weights((fr, fc, self.in_ch, self.out_ch)))
-        b = dtype(np.zeros((1, 1, 1, self.out_ch)))
+        W = Container(init_weights((fr, fc, self.in_ch, self.out_ch)),True)
+        b = Container(np.zeros((1, 1, 1, self.out_ch)),True)
 
         self.parameters = {"W": W, "b": b}
-        self.gradients = {"W": np.zeros_like(W), "b": np.zeros_like(b)}
+        self.gradients = {"W": None, "b": None}
         self.derived_variables = {"Z": [], "out_rows": [], "out_cols": []}
         self.is_initialized = True
 
@@ -109,9 +113,12 @@ class Conv2D(LayerBase):
         if not self.is_initialized:
             self.in_ch = X.shape[3]
             self._init_params()
-
-        W = self.parameters["W"]
-        b = self.parameters["b"]
+        if  retain_derived == False:
+            W = self.parameters["W"]._value
+            b = self.parameters["b"]._value
+        else:
+            W = self.parameters["W"]
+            b = self.parameters["b"]
 
         n_ex, in_rows, in_cols, in_ch = X.shape
         s, p, d = self.stride, self.pad, self.dilation
@@ -121,14 +128,11 @@ class Conv2D(LayerBase):
         Y = self.act_fn(Z)
 
         if retain_derived:
-            self.X.append(X)
-            self.derived_variables["Z"].append(Z)
-            self.derived_variables["out_rows"].append(Z.shape[1])
-            self.derived_variables["out_cols"].append(Z.shape[2])
+            pass
 
         return Y
 
-    def backward(self, dLdy, retain_grads=True):
+    def backward(self, retain_grads=True):
         """
         Compute the gradient of the loss with respect to the layer parameters.
         Notes
@@ -153,45 +157,7 @@ class Conv2D(LayerBase):
             The gradient of the loss with respect to the layer input volume.
         """
         assert self.trainable, "Layer is frozen"
-        if not isinstance(dLdy, list):
-            dLdy = [dLdy]
 
-        dX = []
-        X = self.X
-        Z = self.derived_variables["Z"]
-
-        for dy, x, z in zip(dLdy, X, Z):
-            dx, dw, db = self._bwd(dy, x, z)
-            dX.append(dx)
-
-            if retain_grads:
-                self.gradients["W"] += dw
-                self.gradients["b"] += db
-
-        return dX[0] if len(X) == 1 else dX
-
-
-    def _bwd(self, dLdy, X, Z):
-            """Actual computation of gradient of the loss wrt. X, W, and b"""
-            W = self.parameters["W"]
-
-            d = self.dilation
-            fr, fc, in_ch, out_ch = W.shape
-            n_ex, out_rows, out_cols, out_ch = dLdy.shape
-            (fr, fc), s, p = self.kernel_shape, self.stride, self.pad
-
-            # columnize W, X, and dLdy
-            dLdZ = dLdy * self.act_fn.grad(Z)
-            dLdZ_col = dLdZ.transpose(3, 1, 2, 0).reshape(out_ch, -1)
-            W_col = W.transpose(3, 2, 0, 1).reshape(out_ch, -1).T
-            X_col, p = im2col(X, W.shape, p, s, d)
-
-            # compute gradients via matrix multiplication and reshape
-            dB = dLdZ_col.sum(axis=1).reshape(1, 1, 1, -1)
-            dW = (dLdZ_col @ X_col.T).reshape(out_ch, in_ch, fr, fc).transpose(2, 3, 1, 0)
-
-            # reshape columnized dX back into the same format as the input volume
-            dX_col = W_col @ dLdZ_col
-            dX = col2im(dX_col, X.shape, W.shape, p, s, d).transpose(0, 2, 3, 1)
-
-            return dX, dW, dB
+        if retain_grads:
+            self.gradients["W"] = self.parameters["W"].grad
+            self.gradients["b"] = self.parameters["b"].grad

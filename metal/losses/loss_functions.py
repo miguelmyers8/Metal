@@ -1,6 +1,8 @@
-import numpy as np
+import numpy as _np
 from metal.utils.functions import accuracy_score
 
+from metal.autograd import numpy as np
+from metal.autograd import Container
 
 class Loss(object):
     def loss(self, y_true, y_pred):
@@ -35,8 +37,3 @@ class CrossEntropy(Loss):
 
     def acc(self, y, p):
         return accuracy_score(np.argmax(y, axis=1), np.argmax(p, axis=1))
-
-    def grad(self, y, p):
-        # Avoid division by zero
-        eps = np.finfo(np.float32).eps
-        return - (y / p+eps) + (1 - y) / (1 - p+eps)

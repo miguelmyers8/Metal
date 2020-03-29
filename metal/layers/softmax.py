@@ -1,7 +1,8 @@
-import numpy as np
+import numpy as _np
 from metal.layers.layer import LayerBase
 
-
+from metal.autograd import numpy as np
+from metal.autograd import Container
 
 class Softmax(LayerBase):
     def __init__(self, dim=-1, optimizer=None):
@@ -79,7 +80,7 @@ class Softmax(LayerBase):
         Y = self._fwd(X)
 
         if retain_derived:
-            self.X.append(X)
+            pass
 
         return Y
 
@@ -89,50 +90,5 @@ class Softmax(LayerBase):
         e_X = np.exp(X - np.max(X, axis=self.dim, keepdims=True))
         return e_X / e_X.sum(axis=self.dim, keepdims=True)
 
-    def backward(self, dLdy):
-        """
-        Backprop from layer outputs to inputs.
-        Parameters
-        ----------
-        dLdy : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, n_out)` or list of arrays
-            The gradient(s) of the loss wrt. the layer output(s).
-        retain_grads : bool
-            Whether to include the intermediate parameter gradients computed
-            during the backward pass in the final parameter update. Default is
-            True.
-        Returns
-        -------
-        dLdX : :py:class:`ndarray <numpy.ndarray>` of shape `(n_ex, n_in)`
-            The gradient of the loss wrt. the layer input `X`.
-        """
-        assert self.trainable, "Layer is frozen"
-        if not isinstance(dLdy, list):
-            dLdy = [dLdy]
-
-        dX = []
-        X = self.X
-        for dy, x in zip(dLdy, X):
-            dx = self._bwd(dy, x)
-            dX.append(dx)
-
-        return dX[0] if len(X) == 1 else dX
-
-    def _bwd(self, dLdy, X):
-        """
-        Actual computation of the gradient of the loss wrt. the input X.
-        The Jacobian, J, of the softmax for input x = [x1, ..., xn] is:
-            J[i, j] =
-                softmax(x_i)  * (1 - softmax(x_j))  if i = j
-                -softmax(x_i) * softmax(x_j)        if i != j
-            where
-                x_n is input example n (ie., the n'th row in X)
-        """
-        dX = []
-        for dy, x in zip(dLdy, X):
-            dxi = []
-            for dyi, xi in zip(*np.atleast_2d(dy, x)):
-                yi = self._fwd(xi.reshape(1, -1)).reshape(-1, 1)
-                dyidxi = np.diagflat(yi) - yi @ yi.T  # jacobian wrt. input sample xi
-                dxi.append(dyi @ dyidxi)
-            dX.append(dxi)
-        return np.array(dX).reshape(*X.shape)
+    def backward(self, retain_grads=True):
+        pass

@@ -1,8 +1,8 @@
-import numpy as np
+import numpy as _np
 from abc import ABC, abstractmethod
 from metal.initializers.optimizer_init import OptimizerInitializer
 from metal.initializers.activation_init import ActivationInitializer
-
+from metal.autograd import Container
 
 class LayerBase(ABC):
     def __init__(self, optimizer=None):
@@ -27,7 +27,7 @@ class LayerBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def backward(self, out, **kwargs):
+    def backward(self, **kwargs):
         raise NotImplementedError
 
     def change_optimizer(self,optimizer=None):
@@ -48,11 +48,12 @@ class LayerBase(ABC):
         """Erase all the layer's derived variables and gradients."""
         assert self.trainable, "Layer is frozen"
         self.X = []
-        for k, v in self.derived_variables.items():
-            self.derived_variables[k] = []
+
+        #for k, v in self.parameters.items():
+            #self.parameters[k].grad = None
 
         for k, v in self.gradients.items():
-            self.gradients[k] = np.zeros_like(v)
+            self.gradients[k] = None
 
     def update(self, cur_loss=None):
         """
@@ -63,7 +64,7 @@ class LayerBase(ABC):
         self.optimizer.step()
         for k, v in self.gradients.items():
             if k in self.parameters:
-                self.parameters[k] = self.optimizer(self.parameters[k], v, k, cur_loss)
+                self.parameters[k] = Container(self.optimizer(self.parameters[k]._value, v, k, cur_loss),True)
         self.flush_gradients()
 
     def set_params(self, summary_dict):

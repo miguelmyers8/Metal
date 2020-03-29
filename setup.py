@@ -17,7 +17,7 @@ setup(
     name='fullmetal',
     version='0.59',
     author='Miguel Myers',
-    packages=find_packages(exclude=("tests",)),
+    packages=find_packages(exclude=["autograd"]),
     install_requires=requires,
     author_email='miguelmyers8@gmail.com',
     description='Deep Learning project',

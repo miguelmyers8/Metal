@@ -1,9 +1,13 @@
-import numpy as np
+import numpy as _np
+
+from metal.autograd import numpy as np
+from metal.autograd import Container
 
 from metal.layers.layer import LayerBase
 from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
 from metal.utils.utils import dtype
+
 
 class Dense(LayerBase):
     def __init__(self, n_out, act_fn=None, init="glorot_uniform", optimizer=None):
@@ -44,12 +48,12 @@ class Dense(LayerBase):
     def _init_params(self):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
 
-        b = dtype(np.zeros((1, self.n_out)))
-        W = dtype(init_weights((self.n_in, self.n_out)))
+        W = Container(init_weights((self.n_in, self.n_out)),True)
+        b = Container(np.zeros((1, self.n_out)),True)
 
         self.parameters = {"W": W, "b": b}
         self.derived_variables = {"Z": []}
-        self.gradients = {"W": np.zeros_like(W), "b": np.zeros_like(b)}
+        self.gradients = {"W":None, "b": None}
         self.is_initialized = True
 
     @property
@@ -88,25 +92,27 @@ class Dense(LayerBase):
         if not self.is_initialized:
             self.n_in = X.shape[1]
             self._init_params()
+        if  retain_derived == False:
+            W = self.parameters["W"]._value
+            b = self.parameters["b"]._value
+        else:
+            W = self.parameters["W"]
+            b = self.parameters["b"]
 
-        Y, Z = self._fwd(X)
+        Y, Z = self._fwd(X,W,b)
 
         if retain_derived:
-            self.X.append(X)
-            self.derived_variables["Z"].append(Z)
+            pass
 
         return Y
 
-    def _fwd(self, X):
+    def _fwd(self, X,W,b):
         """Actual computation of forward pass"""
-        W = self.parameters["W"]
-        b = self.parameters["b"]
-
         Z = X @ W + b
         Y = self.act_fn(Z)
         return Y, Z
 
-    def backward(self, dLdy, retain_grads=True):
+    def backward(self,retain_grads=True):
         """
         Backprop from layer outputs to inputs.
         Parameters
@@ -123,43 +129,7 @@ class Dense(LayerBase):
             The gradient of the loss wrt. the layer input(s) `X`.
         """
         assert self.trainable, "Layer is frozen"
-        if not isinstance(dLdy, list):
-            dLdy = [dLdy]
 
-        dX = []
-        X = self.X
-        for dy, x in zip(dLdy, X):
-            dx, dw, db = self._bwd(dy, x)
-            dX.append(dx)
-
-            if retain_grads:
-                self.gradients["W"] += dw
-                self.gradients["b"] += db
-
-        return dX[0] if len(X) == 1 else dX
-
-    def _bwd(self, dLdy, X):
-        """Actual computation of gradient of the loss wrt. X, W, and b"""
-        W = self.parameters["W"]
-        b = self.parameters["b"]
-
-        Z = X @ W + b
-        dZ = dLdy * self.act_fn.grad(Z)
-
-        dX = dZ @ W.T
-        dW = X.T @ dZ
-        dB = dZ.sum(axis=0, keepdims=True)
-        return dX, dW, dB
-
-    def _bwd2(self, dLdy, X, dLdy_bwd):
-        """Compute second derivatives / deriv. of loss wrt. dX, dW, and db"""
-        W = self.parameters["W"]
-        b = self.parameters["b"]
-
-        dZ = self.act_fn.grad(X @ W + b)
-        ddZ = self.act_fn.grad2(X @ W + b)
-
-        ddX = dLdy @ W * dZ
-        ddW = dLdy.T @ (dLdy_bwd * dZ)
-        ddB = np.sum(dLdy @ W * dLdy_bwd * ddZ, axis=0, keepdims=True)
-        return ddX, ddW, ddB
+        if retain_grads:
+            self.gradients["W"] = self.parameters["W"].grad
+            self.gradients["b"] = self.parameters["b"].grad

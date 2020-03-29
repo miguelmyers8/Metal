@@ -1,4 +1,5 @@
-import numpy as np
+import numpy as _np
+from metal.autograd import numpy as np
 
 #######################################################################
 #                           Training Utils                            #
@@ -32,7 +33,7 @@ def minibatch(X, batchsize=256, shuffle=True):
     n_batches = int(np.ceil(N / batchsize))
 
     if shuffle:
-        np.random.shuffle(ix)
+        _np.random.shuffle(ix)
 
     def mb_generator():
         for i in range(n_batches):
@@ -506,13 +507,13 @@ def im2col(X, W_shape, pad, stride, dilation=0):
     pr1, pr2, pc1, pc2 = p
 
     # shuffle to have channels as the first dim
-    X_pad = X_pad.transpose(0, 3, 1, 2)
+    X_pad = X_pad.transpose((0, 3, 1, 2))
 
     # get the indices for im2col
     k, i, j = _im2col_indices((n_ex, n_in, in_rows, in_cols), fr, fc, p, s, d)
 
     X_col = X_pad[:, k, i, j]
-    X_col = X_col.transpose(1, 2, 0).reshape(fr * fc * n_in, -1)
+    X_col = X_col.transpose((1, 2, 0)).reshape(fr * fc * n_in, -1)
     return X_col, p
 
 
@@ -622,9 +623,9 @@ def conv2D(X, W, stride, pad, dilation=0):
 
     # convert X and W into the appropriate 2D matrices and take their product
     X_col, _ = im2col(X, W.shape, p, s, d)
-    W_col = W.transpose(3, 2, 0, 1).reshape(out_ch, -1)
+    W_col = W.transpose((3, 2, 0, 1)).reshape(out_ch, -1)
 
-    Z = (W_col @ X_col).reshape(out_ch, out_rows, out_cols, n_ex).transpose(3, 1, 2, 0)
+    Z = (W_col @ X_col).reshape(out_ch, out_rows, out_cols, n_ex).transpose((3, 1, 2, 0))
 
     return Z
 
@@ -834,7 +835,7 @@ def he_uniform(weight_shape):
     """
     fan_in, fan_out = calc_fan(weight_shape)
     b = np.sqrt(6 / fan_in)
-    return np.random.uniform(-b, b, size=weight_shape)
+    return _np.random.uniform(-b, b, size=weight_shape)
 
 
 def he_normal(weight_shape):
@@ -887,8 +888,8 @@ def glorot_uniform(weight_shape, gain=1.0):
         The initialized weights.
     """
     fan_in, fan_out = calc_fan(weight_shape)
-    b = gain * np.sqrt(6 / (fan_in + fan_out))
-    return np.random.uniform(-b, b, size=weight_shape)
+    b = gain * _np.sqrt(6 / (fan_in + fan_out))
+    return _np.random.uniform(-b, b, size=weight_shape)
 
 
 def glorot_normal(weight_shape, gain=1.0):
@@ -943,10 +944,10 @@ def truncated_normal(mean, std, out_shape):
         Samples from the truncated normal distribution parameterized by `mean`
         and `std`.
     """
-    samples = np.random.normal(loc=mean, scale=std, size=out_shape)
+    samples = _np.random.normal(loc=mean, scale=std, size=out_shape)
     reject = np.logical_or(samples >= mean + 2 * std, samples <= mean - 2 * std)
     while any(reject.flatten()):
-        resamples = np.random.normal(loc=mean, scale=std, size=reject.sum())
+        resamples = _np.random.normal(loc=mean, scale=std, size=reject.sum())
         samples[reject] = resamples
         reject = np.logical_or(samples >= mean + 2 * std, samples <= mean - 2 * std)
     return samples

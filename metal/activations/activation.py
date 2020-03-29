@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from metal.autograd import numpy as np
 
 
 class ActivationBase(ABC):

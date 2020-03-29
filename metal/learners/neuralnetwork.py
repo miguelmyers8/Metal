@@ -1,10 +1,11 @@
 from __future__ import print_function, division
-import numpy as np
+import numpy as _np
 import matplotlib.pyplot as plt
 from metal.utils.functions import batch_iterator
 from metal.utils.misc import bar_widgets
 import progressbar
 from metal.learners.solver import Solver
+from metal.autograd import numpy as np
 
 class NeuralNetwork(object):
     """Neural Network. Deep Learning base model.
@@ -54,13 +55,13 @@ class NeuralNetwork(object):
         """ Single gradient update over one batch of samples """
         y_pred = self._forward_pass(X, retain_derived=True)
         loss = self.loss_function.loss(y, y_pred)
-        acc = self.loss_function.acc(y, y_pred)
-        gradient = self.loss_function.grad(y, y_pred)
+        acc = self.loss_function.acc(y._value, y_pred._value)
+        #gradient = self.loss_function.grad(y, y_pred)
         #Calculate the gradient of the loss function wrt y_pred
-        self._backward_pass(loss_grad=gradient)
+        self._backward_pass(loss=loss)
         #Update weights
-        self._update_pass(loss=loss)
-        return loss, acc
+        self._update_pass(loss=loss._value)
+        return loss._value, acc
 
     def _forward_pass(self, X, retain_derived=True):
         """ Calculate the output of the NN """
@@ -70,10 +71,11 @@ class NeuralNetwork(object):
 
         return layer_output
 
-    def _backward_pass(self, loss_grad):
+    def _backward_pass(self, loss):
         """ Propagate the gradient 'backwards' and update the weights in each layer """
+        loss.backward()
         for layer in reversed(self.layers):
-            loss_grad = layer.backward(loss_grad)
+            layer.backward()
 
     def _update_pass(self, loss):
         """ Propagate the gradient 'backwards' and update the weights in each layer """
@@ -89,7 +91,7 @@ class NeuralNetwork(object):
                 batch_error.append(loss)
 
 
-            self.errors["training"].append(np.mean(batch_error))
+            self.errors["training"].append(_np.mean(batch_error))
 
             if self.val_set is not None:
                 val_loss, val_acc = self.test_on_batch(self.val_set["X"], self.val_set["y"])
@@ -116,7 +118,7 @@ class NeuralNetwork(object):
 
     def predict(self, X):
         pred = self._forward_pass(X, retain_derived=False)
-        list_pred = pred.data.flatten().tolist()
+        list_pred = pred.flatten().tolist()
         return list_pred.index(max(list_pred))
 
     def with_solver(self,data,**kwargs):
