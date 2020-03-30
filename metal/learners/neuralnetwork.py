@@ -6,6 +6,8 @@ from metal.utils.misc import bar_widgets
 import progressbar
 from metal.learners.solver import Solver
 from metal.autograd import numpy as np
+import time
+
 
 class NeuralNetwork(object):
     """Neural Network. Deep Learning base model.
@@ -84,34 +86,45 @@ class NeuralNetwork(object):
 
     def fit(self, X, y, n_epochs, batch_size):
         """ Trains the model for a fixed number of epochs """
-        for _ in self.progressbar(range(n_epochs)):
-            batch_error = []
+        for epoch in range(n_epochs):
+            train_batch_error, train_batch_acc, val_batch_error,val_batch_acc = [],[],[],[]
+            start = time.time()
             for X_batch, y_batch in batch_iterator(X, y, batch_size=batch_size):
                 loss, acc = self.train_on_batch(X_batch, y_batch)
-                batch_error.append(loss)
+                train_batch_error.append((loss * len(y_batch._value)))
+                train_batch_acc.append((acc * len(y_batch._value)))
 
-
-            self.errors["training"].append(_np.mean(batch_error))
+            self.errors["training"].append(_np.sum(train_batch_error)/len(X._value))
 
             if self.val_set is not None:
                 val_loss, val_acc = self.test_on_batch(self.val_set["X"], self.val_set["y"])
-                self.errors["validation"].append(val_loss)
+                val_batch_error.append((val_loss * len(self.val_set["y"])))
+                val_batch_acc.append(( val_acc * len(self.val_set["y"])))
 
+            self.errors["validation"].append(_np.sum(val_batch_error)/len(self.val_set["X"]))
+            elapsed_time = time.time() - start
 
+            print('Epoch: {}\ntrain_loss: {:.3f}, train_acc: {:.3f}%, | val_loss: {:.3f}, val_acc: {:.3f}%, time: {:.4f}[sec]'.format(
+                epoch + 1, _np.sum(train_batch_error)/len(X._value),
+                _np.sum(train_batch_acc)/len(X._value),
+                _np.sum(val_batch_error)/len(self.val_set["X"]),
+                _np.sum(val_batch_acc)/len(self.val_set["X"]),
+                elapsed_time))
         return self.errors["training"], self.errors["validation"]
 
 
-    def eval(self, X_test, y_test):
-        train_err, val_err = self.errors['training'], self.errors["validation"]
-        # Training and validation error plot
-        n = len(train_err)
-        training, = plt.plot(range(n), train_err, label="Training Error")
-        validation, = plt.plot(range(n), val_err, label="Validation Error")
-        plt.legend(handles=[training, validation])
-        plt.title("Error Plot")
-        plt.ylabel('Error')
-        plt.xlabel('Iterations')
-        plt.show()
+    def eval(self, X_test, y_test, plot_fit=False):
+        if plot_fit:
+            train_err, val_err = self.errors['training'], self.errors["validation"]
+            # Training and validation error plot
+            n = len(train_err)
+            training, = plt.plot(range(n), train_err, label="Training Error")
+            validation, = plt.plot(range(n), val_err, label="Validation Error")
+            plt.legend(handles=[training, validation])
+            plt.title("Error Plot")
+            plt.ylabel('Error')
+            plt.xlabel('Iterations')
+            plt.show()
         _, accuracy = self.test_on_batch(X_test, y_test)
         print ("Accuracy:", accuracy)
         return accuracy

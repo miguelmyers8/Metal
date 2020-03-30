@@ -16,7 +16,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_models import torch_gradient_generator, torch_xe_grad, TorchLinearActivation, TorchFCLayer
 
-
+from metal.autograd import numpy as _np
+from metal.autograd import Container
 
 
 def torchify(var, requires_grad=True):
@@ -56,6 +57,7 @@ def test_FullyConnected(N=None):
         n_in = np.random.randint(1, 100)
         n_out = np.random.randint(1, 100)
         X = random_tensor((n_ex, n_in), standardize=True)
+        _X = Container(X,True)
 
         # randomly select an activation function
         act_fn, torch_fn, act_fn_name = acts[np.random.randint(0, len(acts))]
@@ -64,19 +66,25 @@ def test_FullyConnected(N=None):
         L1 = Dense(n_out=n_out, act_fn=act_fn)
 
         # forward prop
-        y_pred = L1.forward(X)
+        y_pred = L1.forward(_X)
 
         # backprop
-        dLdy = np.ones_like(y_pred)
-        dLdX = L1.backward(dLdy)
+        dLdy = np.ones_like(y_pred._value)
+        #dLdX = L1.backward(dLdy)
+        _np.sum(y_pred).backward()
+        L1.backward()
+        dLdX = _X.grad
 
         # get gold standard gradients
+        L1.parameters["W"] = L1.parameters["W"]._value
+        L1.parameters["b"] = L1.parameters["b"]._value
         gold_mod = TorchFCLayer(n_in, n_out, torch_fn, L1.parameters)
         golds = gold_mod.extract_grads(X)
+        L1.X = [X]
 
         params = [
             (L1.X[0], "X"),
-            (y_pred, "y"),
+            (y_pred._value, "y"),
             (L1.parameters["W"].T, "W"),
             (L1.parameters["b"], "b"),
             (dLdy, "dLdy"),

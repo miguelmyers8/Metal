@@ -16,6 +16,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_models import torch_gradient_generator, torch_xe_grad, TorchLinearActivation, TorchFCLayer, TorchConv2DLayer
 
+from metal.autograd import numpy as _np
+from metal.autograd import Container
+
 
 def torchify(var, requires_grad=True):
     return torch.autograd.Variable(torch.FloatTensor(var), requires_grad=requires_grad)
@@ -367,7 +370,7 @@ def test_Conv2D(N=None):
             continue
 
         X = random_tensor((n_ex, in_rows, in_cols, n_in), standardize=True)
-
+        _X = Container(X,True)
         # randomly select an activation function
         act_fn, torch_fn, act_fn_name = acts[np.random.randint(0, len(acts))]
 
@@ -382,21 +385,27 @@ def test_Conv2D(N=None):
         )
 
         # forward prop
-        y_pred = L1.forward(X)
+        y_pred = L1.forward(_X)
 
         # backprop
-        dLdy = np.ones_like(y_pred)
-        dLdX = L1.backward(dLdy)
+        dLdy = np.ones_like(y_pred._value)
+        #dLdX = L1.backward(dLdy)
+        _np.sum(y_pred).backward()
+        L1.backward()
+        dLdX = _X.grad
+
+        L1.parameters["W"] = L1.parameters["W"]._value
+        L1.parameters["b"] = L1.parameters["b"]._value
 
         # get gold standard gradients
         gold_mod = TorchConv2DLayer(
             n_in, n_out, torch_fn, L1.parameters, L1.hyperparameters
         )
         golds = gold_mod.extract_grads(X)
-
+        L1.X = [X]
         params = [
             (L1.X[0], "X"),
-            (y_pred, "y"),
+            (y_pred._value, "y"),
             (L1.parameters["W"], "W"),
             (L1.parameters["b"], "b"),
             (L1.gradients["W"], "dLdW"),
