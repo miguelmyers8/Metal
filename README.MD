@@ -11,8 +11,8 @@ A toy deep learning framework. This repo consist of my multiple deep learning tu
 
 
 ## Requirements
-python 3.6+<br>
-
+Python 3.6+<br>
+Autograd [clone from here](https://github.com/miguelmyers8/autodiff)
 ## Installation
 Install this repo locally from top directory. <br/>
 $ pip install -e .
@@ -24,4 +24,4 @@ $ pip install -e .
 - [ ] Solver need optimization. way too slow
 - [ ] conv2D need optimization. way too slow (unitls.con2d is twice as slow when imported and used in con2d class)
 - [ ] Integrate viz. saliency-maps
-- [ ] data augmentation 
+- [ ] data augmentation

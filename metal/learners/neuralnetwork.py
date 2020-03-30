@@ -105,7 +105,8 @@ class NeuralNetwork(object):
             elapsed_time = time.time() - start
 
             print('Epoch: {}\ntrain_loss: {:.3f}, train_acc: {:.3f}%, | val_loss: {:.3f}, val_acc: {:.3f}%, time: {:.4f}[sec]'.format(
-                epoch + 1, _np.sum(train_batch_error)/len(X._value),
+                epoch + 1,
+                _np.sum(train_batch_error)/len(X._value),
                 _np.sum(train_batch_acc)/len(X._value),
                 _np.sum(val_batch_error)/len(self.val_set["X"]),
                 _np.sum(val_batch_acc)/len(self.val_set["X"]),
