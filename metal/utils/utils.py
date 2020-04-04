@@ -353,7 +353,7 @@ def calc_fan(weight_shape):
         fan_in, fan_out = weight_shape
     elif len(weight_shape) in [3, 4]:
         in_ch, out_ch = weight_shape[-2:]
-        kernel_size = np.prod(weight_shape[:-2])
+        kernel_size = _np.prod(weight_shape[:-2])
         fan_in, fan_out = in_ch * kernel_size, out_ch * kernel_size
     else:
         raise ValueError("Unrecognized weight dimension: {}".format(weight_shape))

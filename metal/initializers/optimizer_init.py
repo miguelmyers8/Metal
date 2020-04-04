@@ -10,7 +10,7 @@ class OptimizerInitializer(object):
             (a) __str__ representations of `OptimizerBase` instances
             (b) `OptimizerBase` instances
             (c) Parameter dicts (e.g., as produced via the `summary` method in
-                `LayerBase` instances)
+                `Module` instances)
         If `param` is `None`, return the SGD optimizer with default parameters.
         """
         self.param = param

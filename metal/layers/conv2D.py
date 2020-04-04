@@ -4,12 +4,12 @@ import numpy as _np
 from metal.autograd import numpy as np
 from metal.autograd import Container
 
-from metal.layers.layer import LayerBase
+from metal.layers.layer import Module
 from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
 from metal.utils.utils import pad2D, conv2D, im2col, col2im, dilate, calc_pad_dims_2D, dtype
 
-class Conv2D(LayerBase):
+class Conv2D(Module):
     def __init__(self,out_ch,kernel_shape,pad=0,stride=1,dilation=0,act_fn=None,optimizer=None,init="glorot_uniform"):
         """
         Apply a two-dimensional convolution kernel over an input volume.

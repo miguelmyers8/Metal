@@ -1,10 +1,10 @@
 import numpy as _np
-from metal.layers.layer import LayerBase
+from metal.layers.layer import Module
 
 from metal.autograd import numpy as np
 from metal.autograd import Container
 
-class Softmax(LayerBase):
+class Softmax(Module):
     def __init__(self, dim=-1, optimizer=None):
         """
         A softmax nonlinearity layer.

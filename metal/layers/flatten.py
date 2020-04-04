@@ -1,9 +1,9 @@
 import numpy as _np
-from metal.layers.layer import LayerBase
+from metal.layers.layer import Module
 from metal.autograd import numpy as np
 from metal.autograd import Container
 
-class Flatten(LayerBase):
+class Flatten(Module):
     def __init__(self, keep_dim="first", optimizer=None):
         """
         Flatten a multidimensional input into a 2D matrix.

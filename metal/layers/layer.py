@@ -3,8 +3,14 @@ from abc import ABC, abstractmethod
 from metal.initializers.optimizer_init import OptimizerInitializer
 from metal.initializers.activation_init import ActivationInitializer
 from metal.autograd import Container
+import inspect
 
-class LayerBase(ABC):
+
+# =============================================================================
+# Layer (base class)
+# =============================================================================
+
+class Module(ABC):
     def __init__(self, optimizer=None):
         """An abstract base class inherited by all nerual network layers"""
         self.X = []
@@ -114,3 +120,39 @@ class LayerBase(ABC):
             "parameters": self.parameters,
             "hyperparameters": self.hyperparameters,
         }
+
+
+    def _flatten_params(self, params_dict, parent_key=""):
+        c=-1
+        for name, value in inspect.getmembers(self):
+            if isinstance(value, Module):
+                c+=1
+                key = parent_key + '/' + value.__class__.__name__ + str(c) if parent_key else value.__class__.__name__ + str(c)
+                value._flatten_params(params_dict, key)
+
+        for params_name, params_value in self.parameters.items():
+            key = parent_key + '/' + params_name if parent_key else params_name
+            if params_value.grad is not None:
+                params_value.cleargrad()
+            params_dict[key] = params_value
+
+    def save_weights(self, path):
+        params_dict = {}
+        self._flatten_params(params_dict)
+        array_dict = {key: param._value for key, param in params_dict.items()
+              if param is not None}
+        try:
+            _np.savez_compressed(path, **array_dict)
+        except (Exception, KeyboardInterrupt) as e:
+            if os.path.exists(path):
+                os.remove(path)
+            raise
+
+    def load_weights(self, path):
+        npz = _np.load(path)
+        params_dict = {}
+        self._flatten_params(params_dict)
+        for key, param in params_dict.items():
+            if params_value.grad is not None:
+                params.cleargrad()
+            param._value = npz[key]

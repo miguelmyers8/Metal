@@ -3,13 +3,13 @@ import numpy as _np
 from metal.autograd import numpy as np
 from metal.autograd import Container
 
-from metal.layers.layer import LayerBase
+from metal.layers.layer import Module
 from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
 from metal.utils.utils import dtype
 
 
-class Dense(LayerBase):
+class Dense(Module):
     def __init__(self, n_out, act_fn=None, init="glorot_uniform", optimizer=None):
         """
         A fully-connected (dense) layer.

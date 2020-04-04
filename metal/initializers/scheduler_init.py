@@ -10,7 +10,7 @@ class SchedulerInitializer(object):
             (a) __str__ representations of `SchedulerBase` instances
             (b) `SchedulerBase` instances
             (c) Parameter dicts (e.g., as produced via the `summary` method in
-                `LayerBase` instances)
+                `Module` instances)
         If `param` is `None`, return the ConstantScheduler with learning rate
         equal to `lr`.
         """

@@ -1,8 +1,8 @@
-from metal.layers.layer import LayerBase
+from metal.layers.layer import Module
 from metal.utils.utils import pad2D
 from metal.utils.functional import _pool2D
 
-class Pool2D(LayerBase):
+class Pool2D(Module):
     def __init__(self, kernel_shape, stride=1, pad=0, mode="max", optimizer=None, data_format="channels_last"):
         """
         A single two-dimensional pooling layer.
