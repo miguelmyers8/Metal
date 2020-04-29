@@ -1,5 +1,6 @@
+
 import numpy as np
-from metal.utils.utils import  (he_normal,he_uniform,glorot_normal,glorot_uniform,truncated_normal)
+from metal.utils.weight_inits import  (he_normal,he_uniform,glorot_normal,glorot_uniform,truncated_normal)
 
 class WeightInitializer(object):
     def __init__(self, act_fn_str, mode="glorot_uniform"):

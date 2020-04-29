@@ -1,6 +1,6 @@
 import numpy as np
 import re
-from metal.activations.activation import ActivationBase, Affine, ReLU, Sigmoid, Tanh
+from metal.activations.activation import ActivationBase, Affine, ReLU, Sigmoid, Tanh, Softmax
 
 class ActivationInitializer(object):
     def __init__(self, param=None):
@@ -28,6 +28,8 @@ class ActivationInitializer(object):
         act_str = act_str.lower()
         if act_str == "relu":
             act_fn = ReLU()
+        elif act_str == "softmax":
+            act_fn = Softmax()
         elif act_str == "tanh":
             act_fn = Tanh()
         elif act_str == "sigmoid":

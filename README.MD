@@ -14,14 +14,11 @@ $ pip install -e .
 [eriklindernoren/ML-From-Scratch](https://github.com/eriklindernoren/ML-From-Scratch)<br>
 [ddbourgin/numpy-ml](https://github.com/ddbourgin/numpy-ml)<br>
 [cs231](http://cs231n.github.io/)<br>
-[deeplearning.ai](https://www.deeplearning.ai/)
-
+[deeplearning.ai](https://www.deeplearning.ai/)<br>
+[fastai](https://github.com/fastai/course-v3/blob/master/nbs/dl2)<br>
 
 ### Todo
 - [ ] Finish Unittest
-- [ ] Clean cpp Package
 - [ ] Integrate cupy for gpu computation into autograd
-- [ ] Solver need optimization. way too slow
-- [ ] conv2D need optimization. way too slow (unitls.con2d is twice as slow when imported and used in con2d class)
 - [ ] Integrate viz. saliency-maps
 - [ ] data augmentation
