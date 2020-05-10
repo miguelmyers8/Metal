@@ -7,7 +7,7 @@ from autograd.numpy.numpy_vjps import untake
 from autograd.numpy.numpy_vjps import wrapped_reshape
 from autograd.tracer import primitive, is_container, no_grad, using_config, test_mode
 from autograd.core import backward as _backward
-from autograd.numpy import numpy_wrapper as anp
+from autograd.numpy import numpy_wrapper as anp, primitive
 
 nondiff_methods = ['all', 'any', 'argmax', 'argmin', 'argpartition',
                    'argsort', 'nonzero', 'searchsorted', 'round']

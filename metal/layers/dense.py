@@ -5,13 +5,13 @@ from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
 from metal.initializers.optimizer_init import OptimizerInitializer
 from ..module.module import Module
-from ..utils.function import dense
+from ..core import dense
 
 class Dense(Module):
-    def __init__(self, n_out, act_fn=None, init="glorot_uniform", optimizer=None):
+    def __init__(self, n_in, n_out, act_fn=None, init="glorot_uniform", optimizer=None):
         super().__init__()
         self.init = init
-        self.n_in = None
+        self.n_in = n_in
         self.n_out = n_out
         self.act_fn = ActivationInitializer(act_fn)()
         self.parameters_dict = {"W": None, "b": None}
@@ -19,14 +19,13 @@ class Dense(Module):
 
     def _init_params(self):
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
-        self.W = Container(init_weights((self.n_in, self.n_out)),True)
+        self.W = Container(init_weights((self.n_out, self.n_in)),True)
         self.b = Container(np.zeros((1, self.n_out)),True)
         self.is_initialized = True
 
 
     def forward(self, X, retain_derived=True):
         if not self.is_initialized:
-            self.n_in = X.shape[1]
             self._init_params()
         return  self.act_fn(dense(X,self.W,self.b))
 

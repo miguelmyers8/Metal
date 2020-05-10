@@ -1,6 +1,6 @@
 
 import numpy as np
-from metal.utils.weight_inits import  (he_normal,he_uniform,glorot_normal,glorot_uniform,truncated_normal)
+from ..core import  (he_normal,he_uniform,glorot_normal,glorot_uniform,truncated_normal)
 
 class WeightInitializer(object):
     def __init__(self, act_fn_str, mode="glorot_uniform"):
@@ -22,6 +22,7 @@ class WeightInitializer(object):
             "glorot_uniform",
             "std_normal",
             "trunc_normal",
+            "None",
         ]:
             raise ValueError("Unrecognize initialization mode: {}".format(mode))
 
@@ -40,6 +41,8 @@ class WeightInitializer(object):
             self._fn = np.random.randn
         elif mode == "trunc_normal":
             self._fn = partial(truncated_normal, mean=0, std=1)
+        elif mode == "None":
+            self._fn = lambda x: np.random.randn(*x)
 
     def __call__(self, weight_shape):
         if "glorot" in self.mode:

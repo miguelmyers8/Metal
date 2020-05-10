@@ -5,39 +5,40 @@ from metal.autograd import Container
 from metal.initializers.activation_init import ActivationInitializer
 from metal.initializers.weight_init import WeightInitializer
 from metal.initializers.optimizer_init import OptimizerInitializer
-
 from ..module.module import Module
-from ..utils.function import pad2D, conv2D, dilate
+from ..core import convolution_2d
+from ..utils.utils import  _pair, parse_kwargs
 
 class Conv2D(Module):
-    def __init__(self,out_ch,kernel_shape,pad=0,stride=1,dilation=0,act_fn=None,optimizer=None,init="glorot_uniform"):
+    def __init__(self, in_channels, out_channels, ksize=None, stride=1, pad=0,
+        nobias=False, initialW=None, initial_bias=None,act_fn=None,
+        optimizer=None,init="glorot_uniform", **kwargs):
+        dilate, groups = parse_kwargs(kwargs, ('dilate', 1), ('groups', 1))
         super().__init__()
-        self.pad = pad
         self.init = init
-        self.in_ch = None
-        self.out_ch = out_ch
-        self.stride = stride
-        self.dilation = dilation
-        self.kernel_shape = kernel_shape
+        self.ksize = ksize
+        self.stride = _pair(stride)
+        self.pad = _pair(pad)
+        self.dilate = _pair(dilate)
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.groups = int(groups)
         self.act_fn = ActivationInitializer(act_fn)()
         self.parameters_dict = {"W": None, "b": None}
         self.is_initialized = False
 
 
-    def _init_layer(self):
-        fr, fc = self.kernel_shape
+    def _init_params(self):
+        kh, kw = _pair(self.ksize)
         init_weights = WeightInitializer(str(self.act_fn), mode=self.init)
-        self.W = Container(init_weights((fr, fc, self.in_ch, self.out_ch)),True)
-        self.b = Container(np.zeros((1, 1, 1, self.out_ch)),True)
+        self.W = Container(init_weights((self.out_channels, int(self.in_channels / self.groups),kh,kw)),True)
+        self.b = Container(np.zeros((1,1,1,self.out_channels)),True)
         self.is_initialized = True
 
     def forward(self, X, retain_derived=True):
         if not self.is_initialized:
-            self.in_ch = X.shape[3]
             self._init_params()
-        n_ex, in_rows, in_cols, in_ch = X.shape
-        s, p, d = self.stride, self.pad, self.dilation
-        return self.act_fn((conv2D(X, self.W, s, p, d) + self.b))
+        return self.act_fn(convolution_2d(X, self.W, self.b, self.stride, self.pad, dilate=self.dilate, groups=self.groups, cudnn_fast=False))
 
     @property
     def hyperparameters(self):
@@ -46,15 +47,13 @@ class Conv2D(Module):
             "layer": "Conv2D",
             "pad": self.pad,
             "init": self.init,
-            "in_ch": self.in_ch,
-            "out_ch": self.out_ch,
+            "in_ch": self.in_channels,
+            "out_ch": self.out_channels,
             "stride": self.stride,
-            "dilation": self.dilation,
+            "dilation": self.dilate,
             "act_fn": str(self.act_fn),
-            "kernel_shape": self.kernel_shape,
-            "optimizer": {
-
-            },
+            "kernel_shape": self.ksize,
+            "optimizer": {},
         }
 
 Conv2D.register()
