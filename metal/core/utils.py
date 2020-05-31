@@ -1,4 +1,6 @@
 from typing import *
+from .autograd import numpy as anp
+import numpy as np
 
 def compose(x, funcs, *args, order_key='_order', **kwargs):
     key = lambda o: getattr(o, order_key, 0)
@@ -11,3 +13,5 @@ def listify(o):
     if isinstance(o, str): return [o]
     if isinstance(o, Iterable): return list(o)
     return [o]
+
+def accuracy(out, yb): return (anp.argmax(out, axis=1)==yb).mean()

@@ -1,6 +1,6 @@
 import six
-from metal.autograd import numpy as np
-from metal.autograd import primitive, defvjp
+from ..autograd import numpy as np
+from ..autograd import primitive, defvjp
 from ..kernels.functions.functional import col2im_cpu, im2col_cpu, get_conv_outsize, _im2col_indices, im2col_nd_cpu, col2im_nd_cpu
 from metal.utils.utils import _pair, parse_kwargs, as_tuple
 import functools

@@ -9,7 +9,7 @@ Autograd [clone from here](https://github.com/miguelmyers8/autodiff)
 Install this repo locally from top directory. <br/>
 $ pip install -e .
 
-## Resources
+## Learned resources
 [joelgrus/autograd](https://github.com/joelgrus/autograd)<br>
 [eriklindernoren/ML-From-Scratch](https://github.com/eriklindernoren/ML-From-Scratch)<br>
 [ddbourgin/numpy-ml](https://github.com/ddbourgin/numpy-ml)<br>

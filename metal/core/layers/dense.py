@@ -1,5 +1,5 @@
-from metal.autograd import numpy as np
-from metal.autograd import primitive, defvjp
+from ..autograd import numpy as np
+from ..autograd import primitive, defvjp
 
 
 class DenseFunction(object):

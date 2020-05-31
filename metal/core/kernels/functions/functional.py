@@ -1,4 +1,4 @@
-from metal.autograd import numpy as np
+from ...autograd import numpy as np
 import six
 import itertools
 from metal.utils.utils import as_tuple

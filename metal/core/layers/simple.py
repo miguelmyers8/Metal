@@ -1,7 +1,10 @@
-from .maxpoolnd import max_pooling_nd
 from .conv2d import Convolution2DFunction, parse_kwargs
 from .dense import DenseFunction
 
+def max_pooling_nd(x, ksize, stride=None, pad=0, cover_all=True, return_indices=False):
+    ndim = len(x.shape[2:])
+    func = MaxPoolingND(ndim, ksize, stride, pad, cover_all, return_indices)
+    return func.forward_cpu((x,)[0])
 
 def max_pooling_2d(x, ksize, stride=None, pad=0, cover_all=True, return_indices=False):
     if len(x.shape[2:]) != 2:

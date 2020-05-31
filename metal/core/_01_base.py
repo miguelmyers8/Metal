@@ -1,11 +1,12 @@
+import numpy as np
+
 class Sampler():
     def __init__(self, ds, bs, shuffle=False):
         self.n,self.bs,self.shuffle = len(ds),bs,shuffle
 
     def __iter__(self):
         self.idxs = np.random.permutation(self.n) if self.shuffle else np.arange(self.n)
-        for i in range(0, self.n, self.bs): yield self.idxs[i:i+self.bs]
-
+        for i in range(0, self.n, self.bs): yield self.idxs[i:i+self.bs] # if bs = 64 first iter is [0:0+64] ...
 
 # gets index from dataset of data and labels
 class Dataset():

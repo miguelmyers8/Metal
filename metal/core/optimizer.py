@@ -1,4 +1,4 @@
-from .utils import *
+from .utils import listify, compose
 
 class Optimizer(object):
     def __init__(self, params, steppers, **defaults):
@@ -14,8 +14,8 @@ class Optimizer(object):
             for p in pg if p.grad is not None]
 
     def zero_grad(self):
-        for p,hyper in self.grad_params():
-            p.grad.zero_grad()
+        for p, hyper in self.grad_params():
+            p.zero_grad()
 
     def step(self):
-        for p,hyper in self.grad_params(): compose(p, self.steppers, **hyper)
+        for p, hyper in self.grad_params(): compose(p, self.steppers, **hyper)

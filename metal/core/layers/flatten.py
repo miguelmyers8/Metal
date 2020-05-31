@@ -1,7 +1,7 @@
 import numpy as _np
-from metal.autograd import numpy as np
-from metal.autograd import Container
-from metal.autograd import primitive, defvjp
+from ..autograd import numpy as np
+from ..autograd import Container
+from ..autograd import primitive, defvjp
 
 class FlattenFunction(object):
     def __init__(self, shape):

@@ -30,8 +30,12 @@ class Module(ABC):
             self._params.add(name)
         super().__setattr__(name, value)
 
-    def _init_layer(self, **kwargs):
-        pass
+    def __call__(self, x):
+        return self.forward(x)
+
+    def _init_params(self, **kwargs):
+        for i in self.modules():
+            i._init_params()
 
     def forward(self, z, **kwargs):
         pass
@@ -53,14 +57,6 @@ class Module(ABC):
 
     def summary(self):
         pass
-    def _flatten_params(self, params_dict, parent_key=""):
-        pass
-
-    def save_weights(self, path):
-        pass
-
-    def load_weights(self, path):
-        pass
 
     # use numpy
     def to_cpu(self):
@@ -68,6 +64,34 @@ class Module(ABC):
     # use cupy
     def to_gpu(self):
         pass
+
+    def _flatten_params(self, params_dict, parent_key=""):
+        for name in self._params:
+            obj = self.__dict__[name]
+            key = parent_key + '/' + name if parent_key else name
+            if is_module(obj):
+                obj._flatten_params(params_dict, key)
+            else:
+                params_dict[key] = obj
+
+    def save_weights(self, path):
+        params_dict = {}
+        self._flatten_params(params_dict)
+        array_dict = {key: param._value for key, param in params_dict.items()
+                      if param is not None}
+        try:
+            _np.savez_compressed(path, **array_dict)
+        except (Exception, KeyboardInterrupt) as e:
+            if os.path.exists(path):
+                os.remove(path)
+            raise
+
+    def load_weights(self, path):
+        npz = _np.load(path)
+        params_dict = {}
+        self._flatten_params(params_dict)
+        for key, param in params_dict.items():
+            param._value = npz[key]
 
     # returns modules and name
     def named_modules(self):
@@ -91,15 +115,22 @@ class Module(ABC):
     def eval(self):
         return self.train(False)
 
-    # return parameters from modules
-    def parameters(self):
+    # return name and parameters from modules
+    def name_parameters(self):
         if self._params:
             for name in self._params:
                 obj = self.__dict__[name]
                 if is_module(obj):
-                    yield from obj.parameters()
+                    yield from obj.name_parameters()
                 else:
-                    yield obj
+                    yield name, obj
+
+
+    # return parameters from modules
+    def parameters(self):
+        for name, parms in self.name_parameters():
+            yield  parms
+
 
     # clears the gradients
     def zero_grad(self):
@@ -111,7 +142,7 @@ class Module(ABC):
     def update(self, cur_loss=None):
         assert self.trainable, "Layer is frozen"
         self.optimizer.step()
-        for p,n in self.parameters():
+        for p, n in self.name_parameters():
             p._value = self.optimizer(p._value, p.grad, n, cur_loss)
             p.zero_grad()
 
@@ -122,3 +153,4 @@ class Module(ABC):
 
 _module_types = Module.types
 is_module  = lambda x: type(x) in _module_types
+is_module_list = lambda l: list(map(is_module,l))

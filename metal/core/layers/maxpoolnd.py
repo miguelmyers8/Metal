@@ -1,6 +1,6 @@
 import six
-from metal.autograd import numpy as np
-from metal.autograd import primitive, defvjp
+from ..autograd import numpy as np
+from ..autograd import primitive, defvjp
 from ..kernels.functions.functional import im2col_nd_cpu, col2im_nd_cpu
 from metal.utils.utils import _pair, parse_kwargs, as_tuple
 import functools
@@ -72,9 +72,3 @@ class MaxPoolingND():
         return grad
 
 defvjp(MaxPoolingND.forward_cpu, MaxPoolingND.backward, argnums=(1,))
-
-
-def max_pooling_nd(x, ksize, stride=None, pad=0, cover_all=True, return_indices=False):
-    ndim = len(x.shape[2:])
-    func = MaxPoolingND(ndim, ksize, stride, pad, cover_all, return_indices)
-    return func.forward_cpu((x,)[0])

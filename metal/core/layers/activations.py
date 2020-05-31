@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as _np
-from metal.autograd import numpy as np
-from metal.autograd import Container, primitive, defvjp
+from ..autograd import numpy as np
+from ..autograd import Container, primitive, defvjp
 
 class ActivationBase(ABC):
     def __init__(self, **kwargs):

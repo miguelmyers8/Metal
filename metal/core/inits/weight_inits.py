@@ -1,5 +1,5 @@
 import numpy as _np
-from metal.autograd import numpy as np
+from ..autograd import numpy as np
 
 
 
