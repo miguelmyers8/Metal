@@ -17,7 +17,7 @@ class Module(ABC):
         """An abstract base class inherited by all layers"""
         self.X = []
         self.act_fn = None
-        self.trainable = True
+        self.training = True
         self.gradients = {}
         self.parameters_dict = {}
         self.derived_variables = {}
@@ -140,7 +140,7 @@ class Module(ABC):
     # TODO: needs to be faster we have some float64 coming from autograd that slowing use down
     # update a layers parameters
     def update(self, cur_loss=None):
-        assert self.trainable, "Layer is frozen"
+        assert self.training, "Layer is frozen"
         self.optimizer.step()
         for p, n in self.name_parameters():
             p._value = self.optimizer(p._value, p.grad, n, cur_loss)

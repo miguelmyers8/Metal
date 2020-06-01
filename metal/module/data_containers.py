@@ -18,10 +18,9 @@ class ModuleList(Module):
         return [ m for m in self.__dict__.values() if is_module(m) ][idx]
 
     def trainable_layers(self):
-        for l in self.__dict__.values():
-            if is_module(l):
-                if l.trainable or l._params:
-                    yield  l
+        for l in self:
+            if l.training or l._params:
+                yield l
 
     def _init_params(self):
         for c, i in enumerate(self):
