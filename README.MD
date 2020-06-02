@@ -6,7 +6,7 @@ Python 3.6+<br>
 Autograd [clone from here](https://github.com/miguelmyers8/autodiff)
 
 ## Installation
-Install this repo locally from top directory. <br/>
+Install this repo locally from top directory.<br/>
 $ pip install -e .
 
 
