@@ -13,8 +13,8 @@ def collate(b):
 
 # takes dataset and batch size and returns a generator of the dataset
 class DataLoader():
-    def __init__(self, ds, sampler, batch_sampler=None,batch_size=None ,collate_fn=collate):
-        self.ds,self.sampler,self.batch_sampler,self.batch_size,self.collate_fn = ds,sampler,batch_sampler,batch_size,collate_fn
+    def __init__(self, dataset, sampler, batch_sampler=None,batch_size=None ,collate_fn=collate):
+        self.dataset,self.sampler,self.batch_sampler,self.batch_size,self.collate_fn = dataset,sampler,batch_sampler,batch_size,collate_fn
         if batch_size is not None and batch_sampler is None: self.batch_sampler = BatchSampler(sampler,batch_size,False)
 
     def __len__(self):
@@ -25,9 +25,9 @@ class DataLoader():
 
     def __iter__(self):
         if self.batch_sampler:
-            for s in self.batch_sampler: yield self.collate_fn([self.ds[i] for i in s])
+            for s in self.batch_sampler: yield self.collate_fn([self.dataset[i] for i in s])
         else:
-            for s in self.sampler: yield self.collate_fn([self.ds[i] for i in s])
+            for s in self.sampler: yield self.collate_fn([self.dataset[i] for i in s])
 
 
 class DataBunch():
@@ -35,7 +35,7 @@ class DataBunch():
         self.train_dl,self.valid_dl,self.c = train_dl,valid_dl,c
 
     @property
-    def train_ds(self): return self.train_dl
+    def train_dataset(self): return self.train_dl.dataset
 
     @property
-    def valid_ds(self): return self.valid_dl
+    def valid_dataset(self): return self.valid_dl
