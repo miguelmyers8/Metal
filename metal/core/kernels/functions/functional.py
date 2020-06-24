@@ -1,7 +1,7 @@
 from ...autograd import numpy as np
 import six
 import itertools
-from metal.utils.utils import as_tuple
+from ...utils import as_tuple
 
 def _im2col_indices(X_shape, k, s, outs, d=0):
     n_ex, n_in, in_rows, in_cols = X_shape
@@ -37,25 +37,43 @@ def get_conv_outsize(size, k, s, p, cover_all=False, d=1):
     if cover_all:
         return (size + p * 2 - dk + s - 1) // s + 1
     else:
-        return (size + p * 2 - dk) // s + 1, dk
+        return (size + p * 2 - dk) // s + 1
 
 
-def im2col_cpu(img, kh, kw, sy, sx, ph, pw, pval=0, cover_all=False, dy=1, dx=1, out_h=None, out_w=None):
+def im2col_cpu(
+        img, kh, kw, sy, sx, ph, pw, pval=0, cover_all=False, dy=1, dx=1,
+        out_h=None, out_w=None):
     n, c, h, w = img.shape
     if out_h is None:
-        out_h,dkh = get_conv_outsize(h, kh, sy, ph, cover_all, dy)
+        out_h = get_conv_outsize(h, kh, sy, ph, cover_all, dy)
     assert out_h > 0, 'Height in the output should be positive.'
     if out_w is None:
-        out_w,dkw = get_conv_outsize(w, kw, sx, pw, cover_all, dx)
+        out_w = get_conv_outsize(w, kw, sx, pw, cover_all, dx)
     assert out_w > 0, 'Width in the output should be positive.'
 
-    imgpad = np.pad(img,
+    # img.shape = (n_ex,n_ch,nh,nw)
+    # np.pad affects img (dim1,dim2,dim3,dim4)
+
+    # dim3 padded (ph,ph)
+    # dim3 gets (ph,ph)  a (vector of size nh added to top,vector of size nh added to bottom)
+    # so now img is of shape(n_ex,n_ch,nh+ph+ph, nw)
+
+    # dim4 padded (pw,pw)
+    # dim4 gets (pw,pw) a (vector of size nw added to right, vector of size nw added to left)
+    # so now img is of shape(n_ex,n_ch,nh+ph+ph, nw+pw+pw)
+    img = np.pad(img,
                     ((0, 0), (0, 0), (ph, ph + sy - 1), (pw, pw + sx - 1)),
                     mode='constant', constant_values=(pval,))
+    col = np.ndarray((n, c, kh, kw, out_h, out_w), dtype=img.dtype)
 
-    k, i, j = _im2col_indices((n, c, h, w),(kh, kw),(sy,sx),(out_h,out_w,dkh,dkw),(dy,dx))
-    imgpad_ = imgpad[:, k, i, j]
-    return imgpad_.reshape(n, c, kh, kw, out_h, out_w)
+    for j in six.moves.range(kh):
+        jdy = j * dy
+        j_lim = jdy + sy * out_h
+        for i in six.moves.range(kw):
+            idx = i * dx
+            i_lim = idx + sx * out_w
+            col[:, :, j, i, :, :] = img[:, :, jdy:j_lim:sy, idx:i_lim:sx]
+    return col
 
 def col2im_cpu(col, sy, sx, ph, pw, h, w, dy=1, dx=1):
     n, c, kh, kw, out_h, out_w = col.shape
@@ -76,7 +94,7 @@ def im2col_nd_cpu(img, ksize, stride, pad, pval=0, cover_all=False, dilate=1):
     ndim = len(dims)
     dilate = as_tuple(dilate, ndim)
     assert ndim == len(ksize) == len(stride) == len(pad)
-    outs = tuple(get_conv_outsize(d, k, s, p, cover_all, di)[0]
+    outs = tuple(get_conv_outsize(d, k, s, p, cover_all, di)
                  for (d, k, s, p, di)
                  in zip(dims, ksize, stride, pad, dilate))
     assert all(out > 0 for out in outs), 'Output sizes should be positive.'
@@ -93,6 +111,7 @@ def im2col_nd_cpu(img, ksize, stride, pad, pval=0, cover_all=False, dilate=1):
 
     # Fill the patch array.
     colon = slice(None)
+
     for kxs in itertools.product(*[six.moves.range(k) for k in ksize]):
         # col[:, :, kx_1, kx_2, ..., kx_N, :, :, ..., :]
         col_index = (colon, colon) + kxs + (colon,) * ndim
@@ -104,7 +123,6 @@ def im2col_nd_cpu(img, ksize, stride, pad, pval=0, cover_all=False, dilate=1):
             slice(kx_di, kx_lim, s)
             for (kx_di, kx_lim, s) in zip(kx_dilate, kx_lims, stride))
         col[col_index] = img[img_index]
-
     return col
 
 

@@ -15,18 +15,26 @@ class WeightInitializer(object):
             "he_uniform", "glorot_normal", glorot_uniform", "std_normal",
             "trunc_normal"}
         """
-        if mode not in [
+
+        if callable(mode):
+            pass
+
+        elif mode not in [
             "he_normal",
             "he_uniform",
             "glorot_normal",
             "glorot_uniform",
             "std_normal",
             "trunc_normal",
-            "None",
+            "random",
         ]:
             raise ValueError("Unrecognize initialization mode: {}".format(mode))
 
-        self.mode = mode
+        if callable(mode):
+            self.mode = mode.__name__
+        else:
+            self.mode = mode
+
         self.act_fn = act_fn_str
 
         if mode == "glorot_uniform":
@@ -41,8 +49,10 @@ class WeightInitializer(object):
             self._fn = np.random.randn
         elif mode == "trunc_normal":
             self._fn = partial(truncated_normal, mean=0, std=1)
-        elif mode == "None":
+        elif mode == "random":
             self._fn = lambda x: np.random.randn(*x)
+        elif callable(mode):
+            self._fn = lambda x: mode(x)
 
     def __call__(self, weight_shape):
         if "glorot" in self.mode:

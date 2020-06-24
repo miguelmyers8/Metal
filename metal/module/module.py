@@ -2,7 +2,7 @@ import numpy as _np
 from abc import ABC, abstractmethod
 from ..initializers.optimizer_init import OptimizerInitializer
 from ..initializers.activation_init import ActivationInitializer
-from ..autograd import Container, Container_, is_container
+from ..autograd import Container, Container_, is_container, to_container
 import inspect
 
 
@@ -22,15 +22,16 @@ class Module(ABC):
         self.parameters_dict = {}
         self.derived_variables = {}
         self._modules = {}
-        self._params = set()
+        self._params = []
         super().__init__()
 
     def __setattr__(self, name, value):
         if isinstance(value, (Container_, Module)):
-            self._params.add(name)
+            self._params.append(name)
         super().__setattr__(name, value)
 
     def __call__(self, x):
+        x=to_container(x)
         return self.forward(x)
 
     def _init_params(self, **kwargs):
@@ -86,8 +87,11 @@ class Module(ABC):
                 os.remove(path)
             raise
 
-    def load_weights(self, path):
-        npz = _np.load(path)
+    def load_weights(self, path=False, weights=False):
+        if weights:
+            npz = weights
+        else:
+            npz = _np.load(path)
         params_dict = {}
         self._flatten_params(params_dict)
         for key, param in params_dict.items():

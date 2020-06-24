@@ -1,6 +1,12 @@
 import numbers
 import numpy as np
 import inspect
+from metal.core.optimizer import Optimizer
+from metal.core.steppers import sgd_step
+from metal.core import Optimizer
+from metal.core._01_base import Learner,DataLoader,collate
+from metal.models.sequential import Sequential
+from metal.core.samplers import RandomSampler,SequentialSampler
 
 # numpy-ml/numpy_ml/utils/testing.py/
 
@@ -200,3 +206,17 @@ def parse_kwargs(kwargs, *name_and_values, **unexpected):
             '() got unexpected keyword argument(s) {}'.format(args)
         raise TypeError(message)
     return tuple(values)
+
+
+def get_model(model,optimizer=Optimizer,step=sgd_step,lr=0.5):
+    if isinstance(model,list):
+        model = Sequential(model)
+    model._init_params()
+    return model, optimizer(model.parameters(),step,lr=lr)
+
+def create_learner(model_func, loss_func, data):
+    return Learner(*model_func, loss_func, data)
+
+def get_dls(train_ds, valid_ds, bs, **kwargs):
+    return (DataLoader(train_ds,sampler=RandomSampler(train_ds),batch_size=bs,collate_fn=collate),
+            DataLoader(valid_ds,sampler=SequentialSampler(valid_ds),batch_size=bs*2,collate_fn=collate))

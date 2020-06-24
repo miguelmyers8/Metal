@@ -25,4 +25,5 @@ class DenseFunction(object):
             gb = np.sum(gy, axis=0)
             return gb
         return grad
+        
 defvjp(DenseFunction.forward_cpu, DenseFunction.backwardx,DenseFunction.backwardw,DenseFunction.backwardb, argnums=(1,2,3))

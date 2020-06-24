@@ -32,10 +32,14 @@ class DataLoader():
 
 class DataBunch():
     def __init__(self, train_dl, valid_dl, c=None):
-        self.train_dl,self.valid_dl,self.c = train_dl,valid_dl,c
+        self.train_dl,self.valid_dl,self.c = train_dl, valid_dl, c
 
     @property
     def train_dataset(self): return self.train_dl.dataset
 
     @property
-    def valid_dataset(self): return self.valid_dl
+    def valid_dataset(self): return self.valid_dl.dataset
+
+class Learner():
+    def __init__(self, model, opt, loss_func, data):
+        self.model, self.opt, self.loss_func, self.data= model, opt, loss_func, data

@@ -38,3 +38,9 @@ class Container_(container, metaclass=container_mateclass):
 
 def Container(val,requires_grad=False):
     return Container_(val,requires_grad=requires_grad,_node=VJPNode.new_root())
+
+def to_container(x):
+    if not is_container(x):
+        if isinstance(x,_np.ndarray):
+            return Container(x)
+    else: return x

@@ -37,6 +37,7 @@ class Softmax(ActivationBase):
             gx = gx - (ans * sumdx)
             return gx
         return grad
+        
 defvjp(Softmax.forward,Softmax.backward, argnums=(1,))
 
 

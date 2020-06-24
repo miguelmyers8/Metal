@@ -2,7 +2,7 @@ import six
 from ..autograd import numpy as np
 from ..autograd import primitive, defvjp
 from ..kernels.functions.functional import col2im_cpu, im2col_cpu, get_conv_outsize, _im2col_indices, im2col_nd_cpu, col2im_nd_cpu
-from metal.utils.utils import _pair, parse_kwargs, as_tuple
+from .utils import _pair, parse_kwargs, as_tuple
 import functools
 from operator import mul
 
@@ -68,6 +68,5 @@ class Convolution2DFunction():
             gb = np.sum(gy, axis=axis)
             return gb
         return grad
-
 
 defvjp(Convolution2DFunction._forward_cpu_core, Convolution2DFunction.backwardX, Convolution2DFunction.backwardW, Convolution2DFunction.backwardb, argnums=(1,2,3))

@@ -1,4 +1,4 @@
-from .utils import listify, compose
+from .extend import compose, listify
 
 class Optimizer(object):
     def __init__(self, params, steppers, **defaults):

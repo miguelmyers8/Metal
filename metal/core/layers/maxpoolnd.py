@@ -2,7 +2,7 @@ import six
 from ..autograd import numpy as np
 from ..autograd import primitive, defvjp
 from ..kernels.functions.functional import im2col_nd_cpu, col2im_nd_cpu
-from metal.utils.utils import _pair, parse_kwargs, as_tuple
+from .utils import _pair, parse_kwargs, as_tuple
 import functools
 from operator import mul
 

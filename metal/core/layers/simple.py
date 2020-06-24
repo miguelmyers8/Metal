@@ -1,5 +1,6 @@
 from .conv2d import Convolution2DFunction, parse_kwargs
 from .dense import DenseFunction
+from .maxpoolnd import MaxPoolingND
 
 def max_pooling_nd(x, ksize, stride=None, pad=0, cover_all=True, return_indices=False):
     ndim = len(x.shape[2:])

@@ -3,7 +3,7 @@ from ..core import max_pooling_2d
 
 
 class MaxPool2D(Module):
-    def __init__(self, ksize, stride, pad, cover_all, return_indices):
+    def __init__(self, ksize, stride=None, pad=0, cover_all=True, return_indices=False):
         super().__init__()
         self.pad = pad
         self.stride = stride

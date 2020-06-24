@@ -5,6 +5,8 @@ basic-test.ipynb
 /Untitled.ipynb
 /metal/dropout.py
 /BC.py
+/metal/models/pre_trained_weights/VGGBASE.npz
+
 /cython.ipynb
 /multiprocess.ipynb
 /profiling.ipynb

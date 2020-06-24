@@ -27,7 +27,7 @@ from metal.core.samplers import *
 from metal.core._01_base import *
 from metal.core import Optimizer
 import matplotlib.pyplot as plt
-
+from tensorflow import keras
 import numpy as np
 
 def get_model():
@@ -82,6 +82,7 @@ l,a = fit(5,mod,cross_entropy_loss,opt,train_dll,test_dll)
 [cs231](http://cs231n.github.io/)<br>
 [deeplearning.ai](https://www.deeplearning.ai/)<br>
 [fastai](https://github.com/fastai/course-v3/blob/master/nbs/dl2)<br>
+[chainer](https://chainer.org/)<br>
 
 ### Todo
 - [ ] Finish Unittest
